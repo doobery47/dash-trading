@@ -1,0 +1,81 @@
+from marketsenum import markets_enum
+from CandelstickAnalHelper import CandlestickAnalHelper
+from GraphHelper import GraphHelper
+import pandas as pd
+import plotly.graph_objects as go
+from dash import Dash, html, dcc, Output, Input, callback
+import dash
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+
+#dash.register_page(__name__,  order=111)
+
+
+breakout_perc = 2
+breakout_trading_range = 16
+breakout = "None"
+ca = CandlestickAnalHelper()
+
+chart_styles = [
+    'default', 'binance', 'blueskies', 'brasil',
+    'charles', 'checkers', 'classic', 'yahoo',
+    'mike', 'nightclouds', 'sas', 'starsandstripes'
+]
+
+dash.register_page(__name__,  title="Portfolio", order=1)
+
+layout = html.Div(
+    [
+        html.H1('Portfolio', style={'textAlign': 'center'}),
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        html.Div([
+                            dcc.RadioItems(id='market',
+                                options=[dict(label='PIP', value='PIP'),
+                                            dict(label='Managed Funds ISAs', value='Managed Funds ISAs'),
+                                            dict(label='Equities - ISAs', value='Equities - ISAs'),
+                                            dict(label='Managed Funds', value='Managed Funds'),
+                                            dict(label='Equities', value='Equities')],
+                                    style={
+                                        'fontSize': 20, "marginLeft": "15px", "marginBottom": "20px"},
+                                    inputStyle={
+                                        "marginRight": "20px"},
+                                    value='pip')]),
+                            html.Div([dcc.RadioItems(id='hist_status',
+                                options=[dict(label='Current', value='Current'),
+                                         dict(label='Historical', value='Historical'),
+                                        ],
+                                    style={
+                                        'fontSize': 20, "marginLeft": "15px", "marginBottom": "20px"},
+                                    inputStyle={
+                                        "marginRight": "20px"},
+                                    value='hist_status')]),
+                            html.Div([dcc.RadioItems(id='owner',
+                                options=[dict(label='Colin', value='Colin'),
+                                         dict(label='Sandra', value='Sandra'),
+                                        ],
+                                    style={
+                                        'fontSize': 20, "marginLeft": "15px", "marginBottom": "20px"},
+                                    inputStyle={
+                                        "marginRight": "20px"},
+                                    value='owner')]),
+                    ], xs=10, sm=10, md=8, lg=4, xl=4, xxl=4
+                )
+            ]
+        ),
+
+    ])
+
+
+@callback(
+    Input(component_id='market', component_property='value'),
+    Input(component_id='hist_status', component_property='value'),
+    Input(component_id='owner', component_property='value')
+)
+def build_graphs(marketVal, histStatusVal, ownerVal):
+    print(marketVal)
+    print(histStatusVal )
+    print(ownerVal)
+    
