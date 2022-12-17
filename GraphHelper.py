@@ -62,75 +62,60 @@ class GraphHelper:
     headerColours = {"currentIsaColour":'#C750BB', "historicIsaColour":"#50BBC7",
                       "currentPIPColour":"#C750BB","historicPIPColour":"#7a49a5"}
     
-#     def createPlotlyList(self, headers, columns, headerColour):
-#         rowEvenColor = 'lightgrey'
-#         rowOddColor = 'white'
-#         fig = go.Figure(data=[go.Table(columnwidth=[5,1,1],
-#         header=dict(values=headers, fill_color=headerColour, align='left' ),
-#         cells=dict(values=columns,
-#                 align=['left', 'center'], 
-#                 font_size=12,
-#                 fill_color = [[rowOddColor,rowEvenColor]*40],
-#                 line_color='darkslategray', 
-#                 ))])
-#         fig.update_layout(margin=dict(l=10, r=10, t=10, b=10))
-        
-#         return fig
-        
-# # gh = GraphHelper()
-# # gh.getGraph(markets_enum.ftse100)
+    def buildDashTable(self, dff, height=500):
+        return dash_table.DataTable(
+        id={
+        'type': 'dynamic-table',
+        'index': 0
+    },
+        style_as_list_view=True,
+        style_cell={'padding': '5px'},   # style_cell refers to the whole table
+        style_header={
+            'backgroundColor': 'white',
+            'fontWeight': 'bold',
+            'border': '1px solid black'
+        },
+        #----------------------------------------------------------------
+        # Striped Rows
+        #----------------------------------------------------------------
+        # style_header={
+        #     'backgroundColor': 'rgb(230, 230, 230)',
+        #     'fontWeight': 'bold'
+        # },
+        style_data_conditional=[        # style_data.c refers only to data rows
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248)'
+            },
+            {'if': {'column_id': 'Name'},
+            'width': '50%'}
+        ],
+        fixed_rows={'headers': True},
+        style_table={'height': height},  # defaults to 500
+        data=dff.to_dict('records'),
+        style_data={
+            'whiteSpace': 'normal',
+            'height': 'auto',
+        },
+        columns=[
+            {"name": i, "id": i, "deletable": False, "selectable": False} for i in dff.columns
+        ],
+        editable=False,
+        filter_action="native",
+        sort_action="native",
+        sort_mode="multi",
+        row_selectable="multi",
+        row_deletable=False,
+        selected_rows=[],
+        # page_action="native",
+        # page_current=0,
+        #page_size=10,
+    )
 
     def buildTable(self, dff, height=500):
     
         return html.Div(
-                    dash_table.DataTable(
-                        id={
-                        'type': 'dynamic-table',
-                        'index': 0
-                    },
-                        style_as_list_view=True,
-                        style_cell={'padding': '5px'},   # style_cell refers to the whole table
-                        style_header={
-                            'backgroundColor': 'white',
-                            'fontWeight': 'bold',
-                            'border': '1px solid black'
-                        },
-                    #----------------------------------------------------------------
-                    # Striped Rows
-                    #----------------------------------------------------------------
-                        # style_header={
-                        #     'backgroundColor': 'rgb(230, 230, 230)',
-                        #     'fontWeight': 'bold'
-                        # },
-                        style_data_conditional=[        # style_data.c refers only to data rows
-                            {
-                                'if': {'row_index': 'odd'},
-                                'backgroundColor': 'rgb(248, 248, 248)'
-                            },
-                            {'if': {'column_id': 'Name'},
-                            'width': '50%'}
-                        ],
-                        fixed_rows={'headers': True},
-                        style_table={'height': height},  # defaults to 500
-                        data=dff.to_dict('records'),
-                        style_data={
-                            'whiteSpace': 'normal',
-                            'height': 'auto',
-                        },
-                        columns=[
-                            {"name": i, "id": i, "deletable": False, "selectable": False} for i in dff.columns
-                        ],
-                        editable=False,
-                        filter_action="native",
-                        sort_action="native",
-                        sort_mode="multi",
-                        row_selectable="multi",
-                        row_deletable=False,
-                        selected_rows=[],
-                        # page_action="native",
-                        # page_current=0,
-                        #page_size=10,
-                    )
+                    self.buildDashTable(dff, height=500)
         )
     
     

@@ -4,21 +4,13 @@ from DataInterfaceHelper import dataInterfaceHelper
 from marketsenum import markets_enum
 from datetime import date, timedelta
 from GraphHelper import GraphHelper
-from dash import Dash, html, dcc, Output, Input, callback, State, MATCH
+from dash import Input, MATCH, Output, callback, dcc, html
 from marketsenum import markets_enum
-from CandelstickAnalHelper import CandlestickAnalHelper
 from dash.exceptions import PreventUpdate
-from dash import dash_table
-import pandas as pd
-
-
-    
 
 dash.register_page(__name__, order=5)
 
 dih = dataInterfaceHelper()
-
-dash.register_page(__name__, order=5)
 
 layout = html.Div(
     [
@@ -26,11 +18,11 @@ layout = html.Div(
         dbc.Row(
             [
                 dbc.Col(dcc.Dropdown(id='markets-mar', placeholder='Market',
-                                     options=[{'label': 'FTSE 100', 'value': 'FTSE100'},
+                                     options=[{'label': 'FTSE 100', 'value': 'ftse100'},
                                               {'label': 'FTSE 250',
-                                               'value': 'FTSE250'},
-                                              {'label': 'DOW', 'value': 'DOW'},
-                                              {'label': 'NASDAQ', 'value': 'NASDAQ'}]),
+                                               'value': 'ftse250'},
+                                              {'label': 'DOW', 'value': 'dow'},
+                                              {'label': 'NASDAQ', 'value': 'nasdaq'}]),
                         width={'size': 2, 'offset': 1}
                         ),
                 dbc.Col(
@@ -139,7 +131,6 @@ def buildCompData(marketVal, chartVal, dateVal, ticker):
     if ticker is None:
         # PreventUpdate prevents ALL outputs updating
         raise dash.exceptions.PreventUpdate
-    print("here")
     if(ticker is not None):
         currency=None
         marketE=markets_enum[marketVal.lower()]

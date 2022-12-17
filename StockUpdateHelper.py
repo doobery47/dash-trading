@@ -25,26 +25,51 @@ class StockUpdateHelper(DataBaseHelper):
         # go through each of the markets and see when 
         # they where last updated
         di = dataInterfaceHelper()
-        df = pd.DataFrame()
         rlist=[]
-        for e in markets_enum.ftse100,markets_enum.ftse250, markets_enum.dow, markets_enum.nasdaq:  
-            
-            print(df)
-            li=self.get_stocks_list(e)
-            mdata=di.get_ticker_data(li[0].tickerStrpName)
-            mDate=mdata.iloc[-1]['date']
-            print(li[0].tickerStrpName +": "+str(mDate))
-            rlist.append([e.name,mDate])
+        for me in markets_enum:  
+            if(me==markets_enum.s_and_p): continue # Ignore S and P for now
+            li=self.get_stocks_list(me)
+            try:
+                mdata=di.get_ticker_data(li[0].tickerStrpName)
+                mDate=mdata.iloc[-1]['date']
+                print(li[0].tickerStrpName +": "+str(mDate))
+                rlist.append([me.name,mDate])
+            except:
+                rlist.append([me.name,"undefined"])
             
         df = pd.DataFrame (rlist, columns = ['market', 'last_update'])
         return df
+    
+    def getTickersMarketStatus(self, marketE):
+        # get the list of tickers.
+        # go through each one and get the last time it was updated.
+        # flag any that not been updated.
+        di = dataInterfaceHelper()
+        tickers = self.get_stocks_list(marketE)
+        rlist=[]
+        for ticker in tickers:  
+            try:
+                print(ticker)
+                mdata=di.get_ticker_data(ticker.tickerStrpName)
+                mDate=mdata.iloc[-1]['date']
+                print(ticker.tickerStrpName +": "+str(mDate))
+                rlist.append([ticker.tickerStrpName,mDate])
+            except:
+                print(ticker.tickerStrpName+" error")
+            
+        df = pd.DataFrame (rlist, columns = ['Ticker', 'last_update'])
+        return df
+        
+# suh=StockUpdateHelper()
+# d=suh.getTickersMarketStatus(markets_enum.ftse100)
+# print(d)
             
         
 
         
         
-suh=StockUpdateHelper()
-suh.getMarketStatus()
+# suh=StockUpdateHelper()
+# suh.getMarketStatus()
         
         
         

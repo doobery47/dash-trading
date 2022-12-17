@@ -108,7 +108,7 @@ class dataInterfaceHelper(DataBaseHelper):
         df.to_sql(marketsE.name+"_historic_values", con=DataBaseHelper.engine, if_exists='append',index=False)    
         DataBaseHelper.session.commit()
         
-    def updateHistoryDataFTSE(self, tickerNameContainer):                                
+    def updateHistoryDataForTicker(self, tickerNameContainer):                                
             #get last record and date form table
             sql = """INSERT INTO ticket_errors(epic, name, reason, timestamp) VALUES(%s,%s,%s,%s);"""
         
@@ -146,6 +146,7 @@ class dataInterfaceHelper(DataBaseHelper):
                 
             DataBaseHelper.session.commit()           
             return "Complete"
+        
         
     def getTickerDataTest(self, ttv, marketE):
         # pandas display options
@@ -307,7 +308,7 @@ class dataInterfaceHelper(DataBaseHelper):
 # db_logger.addHandler(db_handler)
 # db_logger.setLevel(db_logger_log_level)
    
-tst=dataInterfaceHelper()
+#tst=dataInterfaceHelper()
 #tst.sqlachemyTst()
 #tst.UpdateMarketData(markets_enum.ftse100)
 # tst.UpdateMarketData(markets_enum.ftse250)
@@ -324,4 +325,4 @@ tst=dataInterfaceHelper()
 
 #tst.removeDotL()
 
-tst.tableBuilder()
+#tst.tableBuilder()

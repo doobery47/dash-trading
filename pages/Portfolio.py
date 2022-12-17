@@ -1,10 +1,7 @@
-from marketsenum import markets_enum
 from CandelstickAnalHelper import CandlestickAnalHelper
 from PortfolioHelper import PortfolioHelper
 from GraphHelper import GraphHelper
-import pandas as pd
-import plotly.graph_objects as go
-from dash import Dash, html, dcc, Output, Input, callback
+from dash import Input, Output, callback, dcc, html
 import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc

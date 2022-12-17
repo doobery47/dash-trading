@@ -1,0 +1,166 @@
+import dash
+from dash import Dash, html, dcc, Output, Input, callback, State, MATCH
+import dash_bootstrap_components as dbc
+from marketsenum import markets_enum
+from CandelstickAnalHelper import CandlestickAnalHelper
+from GraphHelper import GraphHelper
+
+
+dash.register_page(__name__, title="Breakouts", order=3)
+ca=CandlestickAnalHelper()
+
+def buildConsList(conList):
+    if(len(conList)==0):
+        return ""
+    theList=[]
+    for con in conList:
+        theList.append({con:con})
+        
+    dcc.Dropdown(id='br_style', placeholder='breakout style',
+                                     options=theList),
+
+# dropdownOptions = [
+#     {'label': 'default', 'value': 'default'},
+#     {'label': 'binance', 'value': 'binance'},
+#     {'label': 'blueskies', 'value': 'blueskies'},
+#     {'label': 'brasil', 'value': 'brasil'},
+#     {'label': 'charles', 'value': 'charles'},
+#     {'label': 'checkers', 'value': 'checkers'},
+#     {'label': 'classic', 'value': 'classic'},
+#     {'label': 'yahoo', 'value': 'yahoo'},
+#     {'label': 'mike', 'value': 'mike'},
+#     {'label': 'nightclouds', 'value': 'nightclouds'},
+#     {'label': 'sas', 'value': 'sas'},
+#     {'label': 'starsandstripes', 'value': 'starsandstripes'}
+# ]
+
+CONTENT_STYLE = {
+    "margin-top": "1rem",
+    "margin-bottom": "1rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1rem",
+}
+
+layout = html.Div(
+    [
+        html.H1('Breakout analysis', style={'textAlign': 'center'}),
+        html.Br(),
+        dbc.Row(
+            [
+                dbc.Col(dcc.Dropdown(id='markets', placeholder='market...',
+                        options=[{'label': 'FTSE 100', 'value': 'ftse100'},
+                                {'label': 'FTSE 250', 'value': 'ftse250'},
+                                {'label': 'DOW', 'value': 'dow'},
+                                {'label': 'NASDAQ-Basic Materials',
+                                    'value': 'nasdaq_BasicMaterials'},
+                                {'label': 'NASDAQ-Consumer Discretionary',
+                                    'value': 'nasdaq_ConsumerDiscretionary'},
+                                {'label': 'NASDAQ-Consumer Staples',
+                                    'value': 'nasdaq_ConsumerStaples'},
+                                {'label': 'NASDAQ-Energy',
+                                    'value': 'nasdaq_Energy'},
+                                {'label': 'NASDAQ-Finance',
+                                    'value': 'nasdaq_Finance'},
+                                {'label': 'NASDAQ-Health Care',
+                                    'value': 'nasdaq_HealthCare'},
+                                {'label': 'NASDAQ-Industrials',
+                                    'value': 'nasdaq_Industrials'},
+                                {'label': 'NASDAQ-Miscellaneous',
+                                    'value': 'nasdaq_Miscellaneous'},
+                                {'label': 'NASDAQ-Real Estate',
+                                    'value': 'nasdaq_RealEstate'},
+                                {'label': 'NASDAQ-Technology',
+                                    'value': 'nasdaq_Technology'},
+                                {'label': 'NASDAQ-Telecommunications',
+                                    'value': 'nasdaq_Telecommunications'},
+                                {'label': 'NASDAQ-Utilities',
+                                    'value': 'nasdaq_Utilities'},
+                            ]
+                        ),
+                        width={'size': 3}
+                    ),      
+                dbc.Col(dcc.Dropdown(id='chart_type', placeholder='chart type',
+                                     options=[
+                                        {'label': 'candle', 'value': 'candle'},
+                                        {'label': 'ohlc', 'value': 'ohlc'},
+                                        {'label': 'line', 'value': 'line'},
+                                        {'label': 'renko', 'value': 'renko'},
+                                        {'label': 'pnf', 'value': 'pnf'}
+                                     ]),
+                        width={'size': 2}),
+                dbc.Col(dcc.Input(id="bper", type="number",placeholder="Breakout %"),
+                        width={'size': 2,}),
+                dbc.Col(
+                        dcc.Input(id="bnodays", type="number", placeholder="Breakout number of days"),
+                        width={'size': 2 }
+                ),
+            ]
+ 
+        ),
+        dbc.Row(
+            [
+                html.Div(
+                [
+                    dbc.Button("Submit", size=1, className="me-2", id='submit-val',n_clicks=0),
+                ],
+                className="d-grid gap-5 d-md-block",
+                style=CONTENT_STYLE,
+            ),
+                
+        
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                html.Div(id='break_selec'),width={'size': 2 }
+                )
+            ]),
+               dbc.Row(
+            [
+                html.Div(id='break_graph')
+            ])
+
+    ])
+
+
+@callback(
+    Output('break_selec', 'children'),
+    Input('submit-val', 'n_clicks'),
+    State(component_id='markets', component_property='value'),
+    State(component_id='bper', component_property='value'),
+    State(component_id='bnodays', component_property='value'), prevent_initial_call=True
+)
+def build_cons(buttonClick, marketVal,breakPerc,breakDays):
+    if(marketVal != None):
+        marketE = markets_enum[marketVal]
+        consolidated_list =ca.consolidating(marketE,breakPerc,breakDays) 
+        
+        return dcc.Dropdown(id={
+                'type': 'conList',
+                'index': 0,
+            }, placeholder='Consolodation',
+               options=consolidated_list),
+
+
+@callback(
+    Output({'type': 'break_graph', 'index': MATCH}, 'children'),
+    # Input(component_id='bnodays', component_property='value'),
+    # Input(component_id='chart_type', component_property='value'), 
+    Input(component_id={'type': 'conList', 'index': MATCH}, component_property='value'),
+    prevent_initial_call=True
+)
+def build_graphs(breakoutTradingRange):#, chartType,breakout):
+ #   df = ca.breakout(breakout, breakoutTradingRange)
+    gh = GraphHelper()
+    # gr=gh.getGraph(df,breakout,"£", 0.0,0.0,chartType)
+    # gr.update_layout(margin=dict(t=100, b=5, l=2, r=2),width=1200, height=500)
+    gr=[]
+    return dcc.Graph(
+                id={
+                    'type': 'dynamic-graph',
+                    'index': 0
+                },
+                figure=gr
+            )
+    

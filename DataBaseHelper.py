@@ -152,7 +152,7 @@ class DataBaseHelper:
         query = 'select '
         for i in range(len(columns)):
             query = query + columns[i] + ', '
-        query = query[:-2] + ' from ' + table
+        query = query[:-2] + ' from "' + table+'"'
         df = pd.read_sql_query(query, DataBaseHelper.conn)
         return df
 
