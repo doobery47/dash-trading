@@ -198,7 +198,7 @@ class ValInvDataConversion(DataBaseHelper):
                 except Exception as e:
                     logging.getLogger().exception(str(e))
                     logging.getLogger().debug(ticker+" insert failed")
-            print(ticker+" added to val_inv_anal_balsheet" ) 
+            print(ticker+" added to val_inv_anal_incomesheet" ) 
         
  
                

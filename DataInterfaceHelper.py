@@ -60,7 +60,12 @@ class dataInterfaceHelper(DataBaseHelper):
         
         df=None
         if(live):
-            df = pdr.get_data_yahoo(symbol.tickerYahoo, start=start_date, end=datetime.now())
+            tickerData = yf.Ticker(symbol.tickerYahoo)
+            delta = datetime.now() -datetime.strptime(start_date, '%Y-%m-%d')
+            df = tickerData.history(period=str(delta.days)+'d')
+            df = df.drop('Dividends', axis=1)
+            df = df.drop('Stock Splits', axis=1)
+            #df = pdr.get_data_yahoo(symbol.tickerYahoo, start=start_date, end=datetime.now())
             df.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume', 'Date':'date'}, inplace=True)
             for i in df.columns:
                 df[i] = df[i].astype(float)
@@ -129,7 +134,8 @@ class dataInterfaceHelper(DataBaseHelper):
     
             try:
                 tickerData = yf.Ticker(tickerNameContainer.tickerYahoo)
-                df = tickerData.history(period='1d')
+                delta = date.today()-startDate
+                df = tickerData.history(period=str(delta.days)+'d')
                 df = df.drop('Dividends', axis=1)
                 df = df.drop('Stock Splits', axis=1)
                 #df = pdr.get_data_yahoo(tickerNameContainer.tickerYahoo, startDate, date.today())
@@ -296,37 +302,54 @@ class dataInterfaceHelper(DataBaseHelper):
             #f.write(ticks.to_string()+" : "+count(ticks)+i+"\n")
             print(ticks)
         f.close()
+        
+    def removeLastRecFromTable(self,marketE):
+        tickers = self.get_stocks_list(marketE)
+        for ticker in tickers:
+            lTicker=ticker.sqlTickerTableStr.lower()
+            try:
+                DataBaseHelper.conn.execute('DELETE FROM "'+lTicker+'" WHERE date in(SELECT MAX("date") FROM "'+lTicker+'") ')
+            except Exception as e:
+                print(e)
+           
+            
     
+if __name__ == "__main__":    
+    # handler = logging.FileHandler('app.log')
+    # handler.setLevel(logging.DEBUG)
+    # logging.getLogger('sqlalchemy').addHandler(handler)
+    # db_log_file_name = 'db.log2'
+    # db_handler_log_level = logging.INFO
+    # db_logger_log_level = logging.DEBUG
+
+    # db_handler = logging.FileHandler(db_log_file_name)
+    # db_handler.setLevel(db_handler_log_level)
+
+    # db_logger = logging.getLogger('sqlalchemy')
+    # db_logger.addHandler(db_handler)
+    # db_logger.setLevel(db_logger_log_level)
     
-# handler = logging.FileHandler('app.log')
-# handler.setLevel(logging.DEBUG)
-# logging.getLogger('sqlalchemy').addHandler(handler)
-# db_log_file_name = 'db.log2'
-# db_handler_log_level = logging.INFO
-# db_logger_log_level = logging.DEBUG
+    tst=dataInterfaceHelper()
+    tst.removeLastRecFromTable(markets_enum.ftse100)
+    tst.removeLastRecFromTable(markets_enum.dow)
+    tst.removeLastRecFromTable(markets_enum.nasdaq_BasicMaterials)
+    tst.removeLastRecFromTable(markets_enum.nasdaq_ConsumerStaples)
+    tst.removeLastRecFromTable(markets_enum.nasdaq_ConsumerDiscretionary)
 
-# db_handler = logging.FileHandler(db_log_file_name)
-# db_handler.setLevel(db_handler_log_level)
+    #tst.sqlachemyTst()
+    #tst.UpdateMarketData(markets_enum.ftse100)
+    # tst.UpdateMarketData(markets_enum.ftse250)
+    # tst.UpdateMarketData(markets_enum.dow)
+    # tst.UpdateMarketData(markets_enum.s_and_p)
+    # tst.UpdateMarketData(markets_enum.nasdaq)
 
-# db_logger = logging.getLogger('sqlalchemy')
-# db_logger.addHandler(db_handler)
-# db_logger.setLevel(db_logger_log_level)
-   
-#tst=dataInterfaceHelper()
-#tst.sqlachemyTst()
-#tst.UpdateMarketData(markets_enum.ftse100)
-# tst.UpdateMarketData(markets_enum.ftse250)
-# tst.UpdateMarketData(markets_enum.dow)
-# tst.UpdateMarketData(markets_enum.s_and_p)
-# tst.UpdateMarketData(markets_enum.nasdaq)
+    #tst.updateHistoryDataFTSE(ftse_enum.ftse100)
+    #print(tst.get_stocks_list(ftse_enum.ftse250))
+    # print(tst.mod_table_name("gg"))
+    # print(date.today())
 
-#tst.updateHistoryDataFTSE(ftse_enum.ftse100)
-#print(tst.get_stocks_list(ftse_enum.ftse250))
-# print(tst.mod_table_name("gg"))
-# print(date.today())
+    #tst.repeat_clean()
 
-#tst.repeat_clean()
+    #tst.removeDotL()
 
-#tst.removeDotL()
-
-#tst.tableBuilder()
+    #tst.tableBuilder()

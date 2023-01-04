@@ -140,7 +140,7 @@ def buildCompData(marketVal, chartVal, dateVal, ticker):
         else:
             currency="$"
         compName=dih.get_company_name(symbol, marketE)
-        data = dih.get_historical_data(symbol, str(dateVal), True)
+        data = dih.get_historical_data(symbol, dateVal, True)
         gh = GraphHelper()
         gr=gh.getGraph(data,compName,currency, 0.0,0.0,chartVal)
         gr.update_layout(margin=dict(t=50, b=5, l=2, r=2))

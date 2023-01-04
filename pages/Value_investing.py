@@ -2,9 +2,9 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 from dash import html, dcc
-from dash import Dash, Input, Output, callback, dcc, html, ctx
+from dash import Dash, Input, Output, callback, dcc, html, ctx, State
 from dash.exceptions import PreventUpdate
-import ValueInvestingHelper as ValueInvestingHelper
+from ValueInvestingHelper import ValueInvestingHelper
 from marketsenum import markets_enum
 
 dash.register_page(__name__, title="Value Investing",order=6)
@@ -66,7 +66,7 @@ layout = html.Div(
         dbc.Row([
             dbc.Col(
                 [
-                     dbc.Spinner(html.Div(id="loading-output"),spinner_style={"width": "3rem", "height": "3rem"}),                   
+                     dbc.Spinner(html.Div(id="val-inv-output"),spinner_style={"width": "3rem", "height": "3rem"}),                   
                 ], width=6
             ),
 
@@ -75,18 +75,20 @@ layout = html.Div(
     ])
 
 @callback(
-    Output(component_id='loading-output', component_property='children'),
+    Output(component_id='val-inv-output', component_property='children'),
+    State(component_id='markets', component_property='value'),
     Input(component_id="review-btn", component_property='n_clicks'),
     Input(component_id="update-btn", component_property='n_clicks'),
-    Input(component_id='markets', component_property='value')
 )
 def build_market_data(marketVal, reviewBtn, updateBtn):
     vih = ValueInvestingHelper()
-    marketE=markets_enum[marketVal.lower()]
-    if (marketVal != None):
+    
+    if (marketVal == None):
         raise PreventUpdate
+    marketE=markets_enum[marketVal.lower()]
     if "review-btn" == ctx.triggered_id:
         vih.processData(marketE)
+        tickers = vih.finalResults()
         
     if "update-btn" == ctx.triggered_id:
         vih.financialInfo(marketE)   

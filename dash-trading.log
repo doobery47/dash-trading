@@ -112,3 +112,248 @@
 2023/01/04 11:43:15 DataInterfaceHelper,line: 143    ERROR | "['Dividends'] not found in axis"
 2023/01/04 12:10:39 app,line: 22     INFO | Logger object created successfully..
 2023/01/04 12:10:39 app,line: 26     INFO | dash-trading started
+2023/01/04 12:14:03 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:14:03 app,line: 26     INFO | dash-trading started
+2023/01/04 12:14:04 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 12:14:05 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:14:05 app,line: 26     INFO | dash-trading started
+2023/01/04 12:16:09 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:16:09 app,line: 26     INFO | dash-trading started
+2023/01/04 12:16:10 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 12:16:12 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:16:12 app,line: 26     INFO | dash-trading started
+2023/01/04 12:19:17 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:19:17 app,line: 26     INFO | dash-trading started
+2023/01/04 12:19:18 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 12:19:20 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:19:20 app,line: 26     INFO | dash-trading started
+2023/01/04 12:21:41 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:21:41 app,line: 26     INFO | dash-trading started
+2023/01/04 12:21:42 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 12:21:43 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:21:43 app,line: 26     INFO | dash-trading started
+2023/01/04 12:23:38 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:23:38 app,line: 26     INFO | dash-trading started
+2023/01/04 12:25:06 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 12:25:07 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:25:07 app,line: 26     INFO | dash-trading started
+2023/01/04 12:26:21 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:26:21 app,line: 26     INFO | dash-trading started
+2023/01/04 12:26:22 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 12:26:24 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:26:24 app,line: 26     INFO | dash-trading started
+2023/01/04 12:27:00 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:27:00 app,line: 26     INFO | dash-trading started
+2023/01/04 12:27:02 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 12:27:03 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:27:03 app,line: 26     INFO | dash-trading started
+2023/01/04 12:33:19 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:33:19 app,line: 26     INFO | dash-trading started
+2023/01/04 12:33:20 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 12:33:22 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:33:22 app,line: 26     INFO | dash-trading started
+2023/01/04 12:38:48 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:38:48 app,line: 26     INFO | dash-trading started
+2023/01/04 12:38:49 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 12:38:51 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 12:38:51 app,line: 26     INFO | dash-trading started
+2023/01/04 13:34:19 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 13:34:19 app,line: 26     INFO | dash-trading started
+2023/01/04 13:34:21 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 13:34:22 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 13:34:22 app,line: 26     INFO | dash-trading started
+2023/01/04 13:36:56 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 13:36:56 app,line: 26     INFO | dash-trading started
+2023/01/04 13:36:57 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 13:36:59 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 13:36:59 app,line: 26     INFO | dash-trading started
+2023/01/04 13:38:37 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 13:38:37 app,line: 26     INFO | dash-trading started
+2023/01/04 13:38:39 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 13:38:40 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 13:38:40 app,line: 26     INFO | dash-trading started
+2023/01/04 13:39:44 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 13:39:44 app,line: 26     INFO | dash-trading started
+2023/01/04 13:39:45 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 13:39:46 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 13:39:46 app,line: 26     INFO | dash-trading started
+2023/01/04 13:49:33 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 13:49:33 app,line: 26     INFO | dash-trading started
+2023/01/04 13:49:34 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 13:49:36 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 13:49:36 app,line: 26     INFO | dash-trading started
+2023/01/04 14:06:26 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:06:26 app,line: 26     INFO | dash-trading started
+2023/01/04 14:06:27 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:06:29 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:06:29 app,line: 26     INFO | dash-trading started
+2023/01/04 14:08:24 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:08:24 app,line: 26     INFO | dash-trading started
+2023/01/04 14:08:25 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:08:26 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:08:26 app,line: 26     INFO | dash-trading started
+2023/01/04 14:17:56 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:17:56 app,line: 26     INFO | dash-trading started
+2023/01/04 14:17:58 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:17:59 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:17:59 app,line: 26     INFO | dash-trading started
+2023/01/04 14:20:54 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:20:54 app,line: 26     INFO | dash-trading started
+2023/01/04 14:20:55 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:20:57 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:20:57 app,line: 26     INFO | dash-trading started
+2023/01/04 14:23:48 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:23:48 app,line: 26     INFO | dash-trading started
+2023/01/04 14:23:49 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:23:50 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:23:50 app,line: 26     INFO | dash-trading started
+2023/01/04 14:27:08 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:27:08 app,line: 26     INFO | dash-trading started
+2023/01/04 14:27:10 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:27:11 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:27:11 app,line: 26     INFO | dash-trading started
+2023/01/04 14:35:25 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:35:25 app,line: 26     INFO | dash-trading started
+2023/01/04 14:35:26 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:35:27 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:35:27 app,line: 26     INFO | dash-trading started
+2023/01/04 14:39:22 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:39:22 app,line: 26     INFO | dash-trading started
+2023/01/04 14:39:23 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:39:24 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:39:24 app,line: 26     INFO | dash-trading started
+2023/01/04 14:44:33 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:44:33 app,line: 26     INFO | dash-trading started
+2023/01/04 14:44:34 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:44:35 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:44:35 app,line: 26     INFO | dash-trading started
+2023/01/04 14:45:18 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:45:18 app,line: 26     INFO | dash-trading started
+2023/01/04 14:45:19 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:45:20 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:45:20 app,line: 26     INFO | dash-trading started
+2023/01/04 14:51:05 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:51:05 app,line: 26     INFO | dash-trading started
+2023/01/04 14:51:07 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:51:08 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:51:08 app,line: 26     INFO | dash-trading started
+2023/01/04 14:53:06 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:53:06 app,line: 26     INFO | dash-trading started
+2023/01/04 14:53:08 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:53:09 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:53:09 app,line: 26     INFO | dash-trading started
+2023/01/04 14:55:06 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:55:06 app,line: 26     INFO | dash-trading started
+2023/01/04 14:55:07 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:55:09 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:55:09 app,line: 26     INFO | dash-trading started
+2023/01/04 14:56:17 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:56:17 app,line: 26     INFO | dash-trading started
+2023/01/04 14:56:19 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 14:56:20 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 14:56:20 app,line: 26     INFO | dash-trading started
+2023/01/04 15:05:07 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:05:07 app,line: 26     INFO | dash-trading started
+2023/01/04 15:05:08 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 15:05:10 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:05:10 app,line: 26     INFO | dash-trading started
+2023/01/04 15:08:15 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:08:15 app,line: 26     INFO | dash-trading started
+2023/01/04 15:08:16 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 15:08:18 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:08:18 app,line: 26     INFO | dash-trading started
+2023/01/04 15:13:11 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:13:11 app,line: 26     INFO | dash-trading started
+2023/01/04 15:13:12 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 15:13:14 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:13:14 app,line: 26     INFO | dash-trading started
+2023/01/04 15:17:44 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:17:44 app,line: 26     INFO | dash-trading started
+2023/01/04 15:17:45 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 15:17:46 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:17:46 app,line: 26     INFO | dash-trading started
+2023/01/04 15:20:15 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:20:15 app,line: 26     INFO | dash-trading started
+2023/01/04 15:20:16 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 15:20:17 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:20:17 app,line: 26     INFO | dash-trading started
+2023/01/04 15:25:37 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:25:37 app,line: 26     INFO | dash-trading started
+2023/01/04 15:25:38 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 15:25:40 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 15:25:40 app,line: 26     INFO | dash-trading started
+2023/01/04 16:40:49 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:40:49 app,line: 26     INFO | dash-trading started
+2023/01/04 16:40:51 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 16:40:52 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:40:52 app,line: 26     INFO | dash-trading started
+2023/01/04 16:43:13 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:43:13 app,line: 26     INFO | dash-trading started
+2023/01/04 16:43:14 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 16:43:15 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:43:15 app,line: 26     INFO | dash-trading started
+2023/01/04 16:46:56 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:46:56 app,line: 26     INFO | dash-trading started
+2023/01/04 16:46:57 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 16:46:58 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:46:58 app,line: 26     INFO | dash-trading started
+2023/01/04 16:52:37 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:52:37 app,line: 26     INFO | dash-trading started
+2023/01/04 16:52:38 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 16:52:40 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:52:40 app,line: 26     INFO | dash-trading started
+2023/01/04 16:53:07 DataInterfaceHelper,line: 147    ERROR | type object 'datetime.date' has no attribute 'now'
+2023/01/04 16:56:21 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:56:21 app,line: 26     INFO | dash-trading started
+2023/01/04 16:56:23 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 16:56:24 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:56:24 app,line: 26     INFO | dash-trading started
+2023/01/04 16:59:26 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:59:26 app,line: 26     INFO | dash-trading started
+2023/01/04 16:59:28 dash,line: 1968     INFO | Dash is running on http://127.0.0.1:8055/
+
+2023/01/04 16:59:29 app,line: 22     INFO | Logger object created successfully..
+2023/01/04 16:59:29 app,line: 26     INFO | dash-trading started
+2023/01/04 17:00:52 DataInterfaceHelper,line: 147    ERROR | "['Dividends'] not found in axis"
+2023/01/04 17:01:04 DataInterfaceHelper,line: 147    ERROR | "['Dividends'] not found in axis"
+2023/01/04 17:03:08 DataInterfaceHelper,line: 147    ERROR | "['Dividends'] not found in axis"
+2023/01/04 17:03:51 DataInterfaceHelper,line: 147    ERROR | "['Dividends'] not found in axis"
