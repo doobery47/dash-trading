@@ -5,8 +5,8 @@ from marketsenum import markets_enum
 from datetime import date, timedelta
 from GraphHelper import GraphHelper
 from dash import Input, MATCH, Output, callback, dcc, html
-from marketsenum import markets_enum
 from dash.exceptions import PreventUpdate
+import logging
 
 dash.register_page(__name__, order=5)
 

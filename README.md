@@ -41,6 +41,26 @@ TODO
     using the same id in in 2 callback Outputs. Have a look at 
     https://community.plotly.com/t/multiple-callbacks-for-an-output/51247 to resolve this.
 
+improvements for dash version.
+1. Home.
+    Update the graph. Looks a bit bland. Take a version of candlestick version
+    remove the current value and put it somewhere else.
+    Make the graphs a little smaller and move the current vlue to take up the space
+2. Portfolio
+    Equities/Historic/Colin has an error
+3. Candlestick analysis. THis now works to a fashion. We run the candlestick patten against the 
+    data and retieve the Bullish ad bearish results for the whole graph, but when we display the graph
+    it gives no indication which dates had these bearish/bullish swings. So with this version we need to 
+    dislpay the table of data and intract with the graph. Or display another line on the graph with the 
+    markers (dates) imbeded in the line.
+    We need to have another look at the graph. shold include one running avarage and one subplot.
+
+
+READING.
+
+Look at https://github.com/snehilvj/dash-mantine-components. Looks like more controls for Dash.
+Look at https://github.com/matplotlib/mplfinance. Diplaying finacial data
+
 
 Morgan Stanley - Global Brands (MSJD.SG)
 Stuttgart - Stuttgart Delayed price. Currency in EUR

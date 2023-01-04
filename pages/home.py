@@ -7,6 +7,7 @@ import pandas as pd
 from GraphHelper import GraphHelper
 import DataInterfaceHelper
 from marketsenum import markets_enum
+import logging
 
 di = DataInterfaceHelper.dataInterfaceHelper()
 
@@ -52,6 +53,8 @@ layout = html.Div(
                                                  value='line')]),
                     ], xs=10, sm=10, md=8, lg=4, xl=4, xxl=4
                 ),
+                dbc.Col(html.H4('NEWS', style={'textAlign': 'left', "marginLeft": "20px"}), 
+                        xs=10, sm=10, md=8, lg=4, xl=4, xxl=4)
                 
             ]
         ),
@@ -59,39 +62,43 @@ layout = html.Div(
             dbc.Col(
                 [
                     dbc.Col([dcc.Graph(id='ftse100', figure={},
-                            style={'height': '50vh'})]),
-                ], width=6
+                            style={'height': '40vh'})]),
+                ], width=4
             ),
             dbc.Col(
                 [
                     dbc.Col([dcc.Graph(id='ftse250', figure={},
-                            style={'height': '50vh'})])
-                ], width=6
+                            style={'height': '40vh'})])
+                ], width=4
             )
+            ,
+            dbc.Col(width=4)
 
         ]),
         dbc.Row([
             dbc.Col(
                 [
                     dbc.Col([dcc.Graph(id='dw', figure={},
-                            style={'height': '50vh'})]),
-                ], width=6
+                            style={'height': '40vh'})]),
+                ], width=4
             ),
             dbc.Col(
                 [
                     dbc.Col([dcc.Graph(id='sp', figure={},
-                            style={'height': '50vh'})])
-                ], width=6
-            )
+                            style={'height': '40vh'})])
+                ], width=4
+            ),
+            dbc.Col(width=4)
 
         ]),
         dbc.Row([
             dbc.Col(
                 [
                     dbc.Col([dcc.Graph(id='nas', figure={},
-                            style={'height': '50vh'})]),
-                ], width=6
-            )
+                            style={'height': '40vh'})]),
+                ], width=4
+            ),
+            dbc.Col(width=4)
 
         ]),
     ])

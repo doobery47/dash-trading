@@ -7,6 +7,7 @@ from datetime import date, datetime,timedelta
 import yfinance as yf
 from industries import ind,sector
 import pandas
+import logging
 
 
 class dataInterfaceHelper(DataBaseHelper):
@@ -100,10 +101,10 @@ class dataInterfaceHelper(DataBaseHelper):
         df= pd.read_csv(market)
         print(df)
         df.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume', 'Date':'date'}, inplace=True)
-        df['close'] = df['close'].str.replace('\,', '')
-        df['open'] = df['open'].str.replace('\,', '')
-        df['high'] = df['high'].str.replace('\,', '')
-        df['low'] = df['low'].str.replace('\,', '')
+        df['close'] = df['close'].str.replace('\,', '',regex=True)
+        df['open'] = df['open'].str.replace('\,', '', regex=True)
+        df['high'] = df['high'].str.replace('\,', '', regex=True)
+        df['low'] = df['low'].str.replace('\,', '', regex=True)
         df['date'] = pd.to_datetime(df['date'])
         df.to_sql(marketsE.name+"_historic_values", con=DataBaseHelper.engine, if_exists='append',index=False)    
         DataBaseHelper.session.commit()
@@ -117,25 +118,29 @@ class dataInterfaceHelper(DataBaseHelper):
                 if self.tableExists(tickerNameContainer.sqlTickerTableStr.lower()):             
                     df_db = pd.read_sql_query('SELECT * FROM "{}" ORDER BY date DESC LIMIT 1;'.format(tickerNameContainer.sqlTickerTableStr.lower()), DataBaseHelper.conn)
                     startDate=(pd.to_datetime(df_db['date'][0]) + pd.DateOffset(days=1)).date()
-                    if(startDate >= date.today()):#- timedelta(days=1)):
+                    if(startDate >= date.today()):
                         status="Wont process "+tickerNameContainer.tickerStrpName+" as end date is equal to or greater than today"
                         return status
                 else: # no table found so we will create one and set up some default data
                     self.createTable(tickerNameContainer.sqlTickerTableStr.lower())
             except Exception as e: ## report the problem and remove entr from tickerr table
-                DataBaseHelper.conn.execute(sql, (tickerNameContainer.tickerStrpName,tickerNameContainer.tickerStrpName,str(e),date.today().strftime('%Y-%m-%d'),))
-                DataBaseHelper.session.commit()
+                logging.getLogger().error(str(e))
                 raise e
     
             try:
-                df = pdr.get_data_yahoo(tickerNameContainer.tickerYahoo, startDate, date.today())
+                tickerData = yf.Ticker(tickerNameContainer.tickerYahoo)
+                df = tickerData.history(period='1d')
+                df = df.drop('Dividends', axis=1)
+                df = df.drop('Stock Splits', axis=1)
+                #df = pdr.get_data_yahoo(tickerNameContainer.tickerYahoo, startDate, date.today())
                 df.to_csv ('test.csv')
                 data = pd.read_csv("test.csv")
                 print(data)
                 print("processed: "+tickerNameContainer.tickerStrpName)
             except Exception as e:
-                DataBaseHelper.conn.execute(sql, (tickerNameContainer.tickerStrpName,tickerNameContainer.tickerStrpName,str(e),date.today().strftime('%Y-%m-%d'),))
-                DataBaseHelper.session.commit()
+                logging.getLogger().error(str(e))
+                # DataBaseHelper.conn.execute(sql, (tickerNameContainer.tickerStrpName,tickerNameContainer.tickerStrpName,str(e),date.today().strftime('%Y-%m-%d'),))
+                # DataBaseHelper.session.commit()
                 raise e   
             
             data.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume', 'Date':'date'}, inplace=True)
@@ -272,7 +277,6 @@ class dataInterfaceHelper(DataBaseHelper):
         elif(marketE == markets_enum.s_and_p): 
             marketStr='^GSPC'
         ticker = yf.Ticker(marketStr).info
-        print(ticker['regularMarketPrice'], ticker['previousClose'])
         return ticker['regularMarketPrice'], ticker['previousClose']
     
     def tableBuilder(self):

@@ -15,6 +15,7 @@ from dash.exceptions import PreventUpdate
 import datetime
 from dateutil.relativedelta import relativedelta
 import talib
+import logging
 
 breakout_perc = 2
 breakout_trading_range = 16
@@ -116,12 +117,13 @@ def procCandlestick(marketVal, candlestickVal, children):
         for tickerNames in tickers:
             try:
                 df = di.get_ticker_data(tickerNames.tickerStrpName)
-                descTxt,fig=cah.buildFigureAndDescTxt(markets_enum[marketVal],tickerNames,df,pattern_function)
+                descTxt,fig=cah.buildFigureAndDescTxt(markets_enum[marketVal],tickerNames,df,pattern_function,candlestickVal)
                 if(fig==None):
                     continue
                 children.append(html.Div(descTxt))
                 children.append(dcc.Graph(figure=fig,style={'width': '90vh', 'height': '90vh'}))
             except Exception as e:
+                logging.getLogger().error(str(e))
                 print(str(e))
         return children         
     else:

@@ -7,6 +7,7 @@ from dash import Dash, Input, Output, callback, dcc, html
 from marketsenum import markets_enum
 import pandas as pd
 from StockUpdateHelper import StockUpdateHelper
+import logging
 #from dash.long_callback import DiskcacheLongCallbackManager
 
 app = Dash(__name__)
@@ -26,7 +27,7 @@ def startList():
 
 layout = html.Div(
     [
-        html.H1('Breakout analysis', style={'textAlign': 'center'}),
+        html.H1('Stock Updates', style={'textAlign': 'center'}),
         html.Br(),
         dbc.Row([
             dbc.Col(

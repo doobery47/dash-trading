@@ -7,6 +7,7 @@ import sqlalchemy
 from sqlalchemy.orm import Session
 import config
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Date, Float, BigInteger
+import logging
 
 
 class TickerTypeVals():
@@ -91,8 +92,8 @@ class DataBaseHelper:
             f = df['name']
             dd = df.iloc[0]['name']
             return dd
-        except:
-            print("Error")
+        except Exception as e:
+            logging.getLogger().error(str(e))
 
     def get_stock_list_names(self, stockE):
         list = self.get_stocks_list(stockE)
@@ -147,6 +148,16 @@ class DataBaseHelper:
             new_ticker_lst.append(self.get_compound_stock_name(ticker, stockE))
 
         return new_ticker_lst
+    
+    def buildTickerNameDict(self, tickers, marketE):
+        #{'label': 'FTSE 100', 'value': 'ftse100'}
+        tickerNames=[]
+        for ticker in tickers:
+            busName=self.get_company_name(ticker,marketE)
+            tickerNames.append({'label': busName, 'value': ticker.tickerStrpName})
+        return tickerNames
+            
+            
 
     def query_columns_to_dataframe(self, table, columns):
         query = 'select '

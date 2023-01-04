@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import pandas
 from DataBaseHelper import DataBaseHelper
-import mplfinance as mpf
 import pandas as pd
 import datetime
 from datetime import date
@@ -17,6 +16,7 @@ import talib
 from patterns import candlestick_patterns, candlestick_patterns_urls
 from DataInterfaceHelper import dataInterfaceHelper
 from dash import html
+import logging
 
 
 class CandlestickAnalHelper(DataBaseHelper):
@@ -82,13 +82,14 @@ class CandlestickAnalHelper(DataBaseHelper):
                 #     print('failed on filename: ', ticker)
                 #     continue
                 if(self.is_breakingout(dfTicker, tickerNames.tickerStrpName,breakout_perc,breakout_trading_range)):
-                    breakout_list.append(tickerNames.tickerStrpName)
+                    breakout_list.append(tickerNames)
                     print("{} is consolidating".format(tickerNames.tickerStrpName))
             except Exception as e: ## report the problem and remove entr from tickerr table
-                DataBaseHelper.conn.execute(sql, (tickerNames.tickerStrpName,tickerNames.tickerStrpName,str(e),date.today().strftime('%Y-%m-%d'),))
-                DataBaseHelper.session.commit()   
+                logging.getLogger().error(str(e))
+                # DataBaseHelper.conn.execute(sql, (tickerNames.tickerStrpName,tickerNames.tickerStrpName,str(e),date.today().strftime('%Y-%m-%d'),))
+                # DataBaseHelper.session.commit()   
                 continue
-        return breakout_list
+        return self.buildTickerNameDict(breakout_list,marketsE)
     
     def breakout(self, breakout, breakout_trading_range):
        
@@ -146,111 +147,117 @@ class CandlestickAnalHelper(DataBaseHelper):
                 self.get_company_name(tickerNames,marketsE), years_ago, True)
         
    
-    def buildFigureAndDescTxt(self, marketE, tickerNames,df,pattern_function):
+    def buildFigureAndDescTxt(self, marketE, tickerNames,df,pattern_function, pattern):
         di = dataInterfaceHelper()
         result = pattern_function(
         df['open'], df['high'], df['low'], df['close'])
-        last = result.tail(1).values[0]
+        df[pattern]=result
+        pattern_days = df[df[pattern] != 0]
+        print(pattern_days)
         years_ago = datetime.date.today() - relativedelta(years=1)
-        if (last != 0):
-            df = di.get_historical_data(tickerNames, str(years_ago))
-            INCREASING_COLOR = '#17BECF'
-            DECREASING_COLOR = '#7F7F7F'
+        try:
+            if (len(pattern_days) > 0):
+                df = di.get_historical_data(tickerNames, str(years_ago))
+                INCREASING_COLOR = '#17BECF'
+                DECREASING_COLOR = '#7F7F7F'
 
-            data = [dict(
-                type='candlestick',
-                open=df.open,
-                high=df.high,
-                low=df.low,
-                close=df.close,
-                x=df.index,
-                yaxis='y2',
-                name='GS',
-                increasing=dict(line=dict(color=INCREASING_COLOR)),
-                decreasing=dict(line=dict(color=DECREASING_COLOR)),
-            )]
+                data = [dict(
+                    type='candlestick',
+                    open=df.open,
+                    high=df.high,
+                    low=df.low,
+                    close=df.close,
+                    x=df.index,
+                    yaxis='y2',
+                    name='GS',
+                    increasing=dict(line=dict(color=INCREASING_COLOR)),
+                    decreasing=dict(line=dict(color=DECREASING_COLOR)),
+                )]
 
-            layout = dict()
+                layout = dict()
 
-            fig = dict(data=data, layout=layout)
+                fig = dict(data=data, layout=layout)
 
-            # Create the layout object
+                # Create the layout object
 
-            fig['layout'] = dict()
-            fig['layout']['plot_bgcolor'] = 'rgb(250, 250, 250)'
-            fig['layout']['xaxis'] = dict(rangeselector=dict(visible=True))
-            fig['layout']['yaxis'] = dict(
-                domain=[0, 0.2], showticklabels=False)
-            fig['layout']['yaxis2'] = dict(domain=[0.2, 0.8])
-            fig['layout']['legend'] = dict(
-                orientation='h', y=0.9, x=0.3, yanchor='bottom')
-            fig['layout']['margin'] = dict(t=40, b=40, r=40, l=40)
+                fig['layout'] = dict()
+                fig['layout']['plot_bgcolor'] = 'rgb(250, 250, 250)'
+                fig['layout']['xaxis'] = dict(rangeselector=dict(visible=True))
+                fig['layout']['yaxis'] = dict(
+                    domain=[0, 0.2], showticklabels=False)
+                fig['layout']['yaxis2'] = dict(domain=[0.2, 0.8])
+                fig['layout']['legend'] = dict(
+                    orientation='h', y=0.9, x=0.3, yanchor='bottom')
+                fig['layout']['margin'] = dict(t=40, b=40, r=40, l=40)
 
-            # Add range buttons
-            rangeselector = dict(
-                visible=True,
-                x=0, y=0.9,
-                bgcolor='rgba(150, 200, 250, 0.4)',
-                font=dict(size=13),
-                buttons=list([
-                    dict(count=1,
-                        label='reset',
-                        step='all'),
-                    dict(count=1,
-                        label='1yr',
-                        step='year',
-                        stepmode='backward'),
-                    dict(count=3,
-                        label='3 mo',
-                        step='month',
-                        stepmode='backward'),
-                    dict(count=1,
-                        label='1 mo',
-                        step='month',
-                        stepmode='backward'),
-                    dict(step='all')
-                ]))
+                # Add range buttons
+                rangeselector = dict(
+                    visible=True,
+                    x=0, y=0.9,
+                    bgcolor='rgba(150, 200, 250, 0.4)',
+                    font=dict(size=13),
+                    buttons=list([
+                        dict(count=1,
+                            label='reset',
+                            step='all'),
+                        dict(count=1,
+                            label='1yr',
+                            step='year',
+                            stepmode='backward'),
+                        dict(count=3,
+                            label='3 mo',
+                            step='month',
+                            stepmode='backward'),
+                        dict(count=1,
+                            label='1 mo',
+                            step='month',
+                            stepmode='backward'),
+                        dict(step='all')
+                    ]))
 
-            fig['layout']['xaxis']['rangeselector'] = rangeselector
-            mv_y = self.movingaverage(df.close)
-            mv_x = list(df.index)
+                fig['layout']['xaxis']['rangeselector'] = rangeselector
+                mv_y = self.movingaverage(df.close)
+                mv_x = list(df.index)
 
-            # Clip the ends
-            mv_x = mv_x[5:-5]
-            mv_y = mv_y[5:-5]
+                # Clip the ends
+                mv_x = mv_x[5:-5]
+                mv_y = mv_y[5:-5]
 
-            fig['data'].append(dict(x=mv_x, y=mv_y, type='scatter', mode='lines',
-                                    line=dict(width=1),
-                                    marker=dict(color='#E377C2'),
-                                    yaxis='y2', name='Moving Average'))
+                fig['data'].append(dict(x=mv_x, y=mv_y, type='scatter', mode='lines',
+                                        line=dict(width=1),
+                                        marker=dict(color='#E377C2'),
+                                        yaxis='y2', name='Moving Average'))
 
-            # Set volume bar chart colors
-            colors = []
+                # Set volume bar chart colors
+                colors = []
 
-            for i in range(len(df.close)):
-                if i != 0:
-                    if df.close[i] > df.close[i-1]:
-                        colors.append(INCREASING_COLOR)
+                for i in range(len(df.close)):
+                    if i != 0:
+                        if df.close[i] > df.close[i-1]:
+                            colors.append(INCREASING_COLOR)
+                        else:
+                            colors.append(DECREASING_COLOR)
                     else:
                         colors.append(DECREASING_COLOR)
-                else:
-                    colors.append(DECREASING_COLOR)
 
-            # Add volume bar chart
+                # Add volume bar chart
 
-            fig['data'].append(dict(x=df.index, y=df.volume,
-                                    marker=dict(color=colors),
-                                    type='bar', yaxis='y', name='volume'))
+                fig['data'].append(dict(x=df.index, y=df.volume,
+                                        marker=dict(color=colors),
+                                        type='bar', yaxis='y', name='volume'))
 
-            bb_avg, bb_upper, bb_lower = self.bbands(df.close)
+                bb_avg, bb_upper, bb_lower = self.bbands(df.close)
 
-            fig['data'].append(dict(x=df.index, y=bb_upper, type='scatter', yaxis='y2',
-                                    line=dict(width=1),
-                                    marker=dict(color='#ccc'), hoverinfo='none',
-                                    legendgroup='Bollinger Bands', name='Bollinger Bands'))
+                fig['data'].append(dict(x=df.index, y=bb_upper, type='scatter', yaxis='y2',
+                                        line=dict(width=1),
+                                        marker=dict(color='#ccc'), hoverinfo='none',
+                                        legendgroup='Bollinger Bands', name='Bollinger Bands'))
 
-            fig['data'].append(dict(x=df.index, y=bb_lower, type='scatter', yaxis='y2',
-                                    line=dict(width=1),
-                                    marker=dict(color='#ccc'), hoverinfo='none',
-                                    legendgroup='Bollinger Bands', showlegend=False))
-            return self.getGraphDescTxt(last, tickerNames,marketE,years_ago), fig
+                fig['data'].append(dict(x=df.index, y=bb_lower, type='scatter', yaxis='y2',
+                                        line=dict(width=1),
+                                        marker=dict(color='#ccc'), hoverinfo='none',
+                                        legendgroup='Bollinger Bands', showlegend=False))
+                return self.getGraphDescTxt(pattern_days[pattern].iloc[-1], tickerNames,marketE,years_ago), fig
+        except Exception as e:
+                logging.getLogger().error(str(e))
+                print(str(e))

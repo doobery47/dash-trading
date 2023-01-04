@@ -2,6 +2,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from dash import Dash, html, dcc, Output, Input, callback, State, MATCH
 from dash import dash_table
+import logging
 
 
 class GraphHelper:
@@ -16,6 +17,10 @@ class GraphHelper:
         df['MA200'] = df['close'].rolling(window=200, min_periods=0).mean()
         df['MA200'].head(30)
         fig = go.Figure()
+        lineColour='blue'
+        
+        if(currentValue < startValue):
+            lineColour="RebeccaPurple"
         
         if(startValue !=0.0):
             fig = go.Figure(go.Indicator(
@@ -49,7 +54,7 @@ class GraphHelper:
             font=dict(
             family="Courier New, monospace",
             size=16,
-            color="RebeccaPurple"  
+            color=lineColour  
             ) ,         
             title=marketName+' historical price chart',
             yaxis_title='Stock Price (pence per Shares)',
@@ -111,6 +116,13 @@ class GraphHelper:
         # page_current=0,
         #page_size=10,
     )
+        
+    def getGraph2(self, df, marketName, currency, currentValue=0.0, startValue=0.0, graphType='line'):
+        df['MA200'] = df['close'].rolling(window=200, min_periods=0).mean()
+        fig = px.line(x=df.index, y=df["open"], title=marketName+' historical price chart',
+             )
+        fig.update_layout(yaxis_title='Stock Price (pence per Shares)', xaxis_tickangle=45)
+        return fig
 
     def buildTable(self, dff, height=500):
     

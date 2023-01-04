@@ -2,13 +2,13 @@ import psycopg2
 import pandas as pd
 import pandas
 from DataBaseHelper import DataBaseHelper
-import mplfinance as mpf
 import pandas as pd
 from datetime import date
 from marketsenum import markets_enum
 from sectorenum import sector_enum
 from DataInterfaceHelper import dataInterfaceHelper
 from datetime import date, datetime,timedelta
+import logging
 
 class StockUpdateHelper(DataBaseHelper):
     def __init__(self):
@@ -54,22 +54,19 @@ class StockUpdateHelper(DataBaseHelper):
                 mDate=mdata.iloc[-1]['date']
                 print(ticker.tickerStrpName +": "+str(mDate))
                 rlist.append([ticker.tickerStrpName,mDate])
-            except:
+            except Exception as e:
+                logging.getLogger().error(str(e))
                 print(ticker.tickerStrpName+" error")
             
         df = pd.DataFrame (rlist, columns = ['Ticker', 'last_update'])
         return df
         
-# suh=StockUpdateHelper()
-# d=suh.getTickersMarketStatus(markets_enum.ftse100)
-# print(d)
-            
-        
-
-        
-        
-# suh=StockUpdateHelper()
-# suh.getMarketStatus()
+if __name__ == "__main__":
+    suh=StockUpdateHelper()
+    # d=suh.getTickersMarketStatus(markets_enum.ftse100)
+    # print(d)         
+    # suh=StockUpdateHelper()
+    # suh.getMarketStatus()
         
         
         

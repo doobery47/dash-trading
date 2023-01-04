@@ -8,6 +8,7 @@ import dash_bootstrap_components as dbc
 from PortfolioTypeE import PortfolioTypeE
 import GraphHelper as gh
 from dash import dash_table
+import logging
 
 dash.register_page(__name__,  order=2)
 
@@ -71,7 +72,7 @@ layout = html.Div(
                         html.H4('Investment type', style={
                                 'textAlign': 'left'}),
                         html.Div([dcc.RadioItems(id='inv-type',
-                            options=[dict(label='PIP', value=PortfolioTypeE.PIP.name),
+                            options=[dict(label='SIP', value=PortfolioTypeE.SIP.name),
                                     dict(
                                         label='Managed Funds ISAs', value=PortfolioTypeE.ManagedFundsISA.name),
                                     dict(
@@ -160,10 +161,10 @@ def build_graphs(marketVal, histStatusVal, ownerVal):
             dff = ph.getCurrentInvestments(PortfolioTypeE[marketVal], ownerVal)
             print(dff)
             #return tableCreation(dff)
-        elif marketVal == "PIP" and histStatusVal == 'Historical':
+        elif marketVal == "SIP" and histStatusVal == 'Historical':
             dff = ph.getHistoricInvestments(PortfolioTypeE[marketVal], ownerVal)
             #return tableCreation(dff)
-        elif marketVal == "PIP" and histStatusVal == 'Current':
+        elif marketVal == "SIP" and histStatusVal == 'Current':
             dff = ph.getCurrentInvestments(PortfolioTypeE[marketVal], ownerVal)
             print(dff)
             #return tableCreation(dff)

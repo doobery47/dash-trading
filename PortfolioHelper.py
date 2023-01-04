@@ -3,6 +3,7 @@ import pandas as pd
 from  PortfolioTypeE import PortfolioTypeE
 from operator import itemgetter
 from yahoo_fin import stock_info as si
+import logging
 
 class PortfolioHelper(DataBaseHelper):
     
@@ -22,7 +23,7 @@ class PortfolioHelper(DataBaseHelper):
         
         if(pte == PortfolioTypeE.ManagedFundsISA):
             df = pd.read_sql_query("SELECT * from isa_investments where owner='"+owner+"'", DataBaseHelper.conn)
-        elif(pte == PortfolioTypeE.PIP):
+        elif(pte == PortfolioTypeE.SIP):
             df = pd.read_sql_query("SELECT * from pip_investments where owner='"+owner+"'", DataBaseHelper.conn)
         
         df=df.drop(df[df.name_a == ""].index)
@@ -74,6 +75,8 @@ class PortfolioHelper(DataBaseHelper):
             print(key)
             tickerRec=self.calcTicker(key, tickerDict.get(key))
             outstanding=None
+            # As a margin of error we have assumed anything less than 2 outstanding is historic and and anything
+            # greater than 2 outstanding for a investment is current
             if(abs(tickerRec['Outstanding']) <2):
                 dfSold.loc[soldCount] = [tickerRec['Name'], tickerRec['Profit_Loss'], tickerRec['Close_Date']]
                 soldCount = soldCount+1
