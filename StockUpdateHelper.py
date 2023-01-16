@@ -30,7 +30,7 @@ class StockUpdateHelper(DataBaseHelper):
             if(me==markets_enum.s_and_p): continue # Ignore S and P for now
             li=self.get_stocks_list(me)
             try:
-                mdata=di.get_ticker_data(li[0].tickerStrpName)
+                mdata=di.get_ticker_data(li[0])
                 mDate=mdata.iloc[-1]['date']
                 print(li[0].tickerStrpName +": "+str(mDate))
                 rlist.append([me.name,mDate])
@@ -50,7 +50,7 @@ class StockUpdateHelper(DataBaseHelper):
         for ticker in tickers:  
             try:
                 print(ticker)
-                mdata=di.get_ticker_data(ticker.tickerStrpName)
+                mdata=di.get_ticker_data(ticker)
                 mDate=mdata.iloc[-1]['date']
                 print(ticker.tickerStrpName +": "+str(mDate))
                 rlist.append([ticker.tickerStrpName,mDate])

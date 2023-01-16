@@ -7,14 +7,15 @@ from GraphHelper import GraphHelper
 from dash import Input, MATCH, Output, callback, dcc, html
 from dash.exceptions import PreventUpdate
 import logging
+from UIHelper import UIHelper
 
-dash.register_page(__name__, order=5)
+dash.register_page(__name__, order=2)
 
 dih = dataInterfaceHelper()
 
 layout = html.Div(
     [
-        html.H1('Breakout analysis', style={'textAlign': 'center'}),
+        html.H1('Company data', style={'textAlign': 'center'}),
         dbc.Row(
             [
                 dbc.Col(dcc.Dropdown(id='markets-mar', placeholder='Market',
@@ -72,7 +73,7 @@ layout = html.Div(
                     'type': 'dynamic-tab',
                     'index': 0
                 })                    
-                ], width=5
+                ], width=6
             )
         ])
 
@@ -85,14 +86,9 @@ layout = html.Div(
     Input(component_id='markets-mar', component_property='value')
 )
 def build_market_data(marketVal):
+    uiHelper=UIHelper()
     if (marketVal != None):
-        tickers = dih.get_stock_list_names(markets_enum[marketVal.lower()])
-        dd=dcc.Dropdown(
-            id={
-                'type': 'dynamic-comp-lst',
-                'index': 0,
-            }, placeholder='Market',
-            options=tickers)
+        dd=uiHelper.companyNameDropDown(markets_enum[marketVal.lower()], 'dynamic-comp-lst')
         graph=dcc.Graph(
                 id={
                     'type': 'dynamic-graph',
@@ -100,8 +96,7 @@ def build_market_data(marketVal):
                 },
                 figure={}
             )
-        #tab=buildTable()
-        return dd,graph#,tab
+        return dd,graph
                 
     else:
         raise PreventUpdate
@@ -134,18 +129,18 @@ def buildCompData(marketVal, chartVal, dateVal, ticker):
     if(ticker is not None):
         currency=None
         marketE=markets_enum[marketVal.lower()]
-        symbol = dih.get_compound_stock_name(ticker, marketE)
+        symbol = dih.get_compound_ticker_name(ticker, marketE)
         if(marketE == markets_enum.ftse100 or marketE == markets_enum.ftse250):
             currency="£"
         else:
             currency="$"
-        compName=dih.get_company_name(symbol, marketE)
-        data = dih.get_historical_data(symbol, dateVal, True)
+        compName=dih.get_company_name(symbol, marketE)+"("+ticker+")"
+        data = dih.get_historical_data(symbol, dateVal)
         gh = GraphHelper()
         gr=gh.getGraph(data,compName,currency, 0.0,0.0,chartVal)
         gr.update_layout(margin=dict(t=50, b=5, l=2, r=2))
                
-        tData=dih.getTickerData(symbol, marketE)
+        tData=dih.getTickerData(symbol)
         tb=gh.buildTable(tData)
         ht=html.Div(tb)
         

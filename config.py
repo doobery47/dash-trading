@@ -14,4 +14,4 @@ TWITTER_USERNAMES = [
 DB_HOST = '127.0.0.1'
 DB_USER = 'colin'
 DB_PASS = 'LewisTen10'
-DB_NAME = 'stockData'
+DB_NAME = 'stockData2'

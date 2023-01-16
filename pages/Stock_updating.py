@@ -12,7 +12,7 @@ import logging
 
 app = Dash(__name__)
 
-dash.register_page(__name__,  title="Stock Updates", order=7)
+dash.register_page(__name__,  title="Stock Updates", order=5)
 
 def startList():
     suh=StockUpdateHelper()
@@ -113,6 +113,8 @@ def build_market_data(n_intervals: int,marketVal):
             dfStatus=pd.DataFrame(columns=["Ticker", "Status"])
             for ticker in ticker_list:
                 try:
+                    if(ticker.tickerStrpName.lower() == 'adm' ):
+                        print('here')
                     status=di.updateHistoryDataForTicker(ticker)
                 except Exception as e:
                     data.append([ticker.ticker, repr(e)])                    

@@ -11,12 +11,13 @@ import logging
 
 
 class TickerTypeVals():
-    def __init__(self, ticker, sqlMarketTableStr, sqlTickerTableStr, tickerStrpName,
+    def __init__(self, ticker, sqlMarketTableStr, sqlTickerTableStr, sqlTickerTable, tickerStrpName,
                  tickerYahoo):
         self.ticker = ticker
         self.sqlMarketTableStr = sqlMarketTableStr
         self.sqlTickerTableStr = sqlTickerTableStr
         self.tickerStrpName = tickerStrpName
+        self.sqlTickerTable=sqlTickerTable
         self.tickerYahoo = tickerYahoo
 
     # This is vanilla value of the ticker. ie just name no market extension
@@ -26,6 +27,7 @@ class TickerTypeVals():
     tickerStrpName = ""     # As ticker but also "." removed, but add ZZ
     # if the company starts with a digit
     tickerYahoo = ""        # This contains the market extension ie ".L". None for US
+    sqlTickerTable=""
 
 
 class DataBaseHelper:
@@ -86,8 +88,9 @@ class DataBaseHelper:
 
     def get_company_name(self, tickerNames, marketsE):
 
-        df = pd.read_sql_query("SELECT * FROM public.{} WHERE epic='{}';".format(marketsE.name,
+        df = pd.read_sql_query("SELECT * FROM public.{} WHERE epic={};".format(marketsE.name,
                                                                                  tickerNames.sqlMarketTableStr), DataBaseHelper.conn)
+        print(df)
         try:
             f = df['name']
             dd = df.iloc[0]['name']
@@ -103,10 +106,12 @@ class DataBaseHelper:
         return names
 
     def tableExists(self, tableName):
-        return sqlalchemy.inspect(self.engine).has_table(tableName.lower())
+        tableName=tableName.replace('"','') #NOTE. Need to remove the quites to run the next statement
+        return sqlalchemy.inspect(self.engine).has_table(tableName)
 
     def createTable(self, tableName):
-        meta = MetaData()
+        tableName=tableName.replace('"','')  #NOTE. Need to remove the quites to run the next statement
+        meta = MetaData() 
         tab = Table(
             tableName, meta,
             Column('date', Date),
@@ -119,20 +124,23 @@ class DataBaseHelper:
         )
         meta.create_all(self.engine)
 
-    def get_compound_stock_name(self, ticker, stockE):
+    def get_compound_ticker_name(self, ticker, stockE):
+        if(ticker.lower()=="av."):
+            print("here")
         tickerYahooExt = ""  # default value
         if (stockE == markets_enum.ftse100):
             tickerYahooExt = ".L"
         elif (stockE == markets_enum.ftse250):
             tickerYahooExt = ".L"
         tickerStrpName = re.sub("[.]", "", ticker)
-        sqlTickerTableStr = self.getTickerSQLName(
-            self.mod_table_digit_name(tickerStrpName))
-        sqlMarketTableStr = ticker
+        sqlTickerTableStr = '"'+self.getTickerSQLName(ticker)+'"' # with quotes
+        sqlTickerTable = self.getTickerSQLName(ticker) # without quotes
+        sqlMarketTableStr = "'"+ticker.upper()+"'" # This is used to get the ticker value out of the market tables. They are all uppercase
         tickerYahoo = tickerStrpName+tickerYahooExt
+        #tickerYahoo=re.sub("[..]", ".", tickerYahoo)
 
         ttv = TickerTypeVals(ticker, sqlMarketTableStr,
-                             sqlTickerTableStr, tickerStrpName, tickerYahoo)
+                             sqlTickerTableStr, sqlTickerTable, ticker, tickerYahoo)
         return ttv
 
     # the return list consist of tuples containing a the sqlformat name, the true name
@@ -145,7 +153,7 @@ class DataBaseHelper:
 
         print(tickers)
         for ticker in tickers:
-            new_ticker_lst.append(self.get_compound_stock_name(ticker, stockE))
+            new_ticker_lst.append(self.get_compound_ticker_name(ticker, stockE))
 
         return new_ticker_lst
     
@@ -167,12 +175,18 @@ class DataBaseHelper:
         df = pd.read_sql_query(query, DataBaseHelper.conn)
         return df
 
-    def mod_table_digit_name(self, ticker):
-        if (ticker[0].isdigit()):
-            return "ZZ_"+ticker
-        else:
-            return ticker
+    # def mod_table_digit_name(self, ticker):
+    #     if (ticker[0].isdigit()):
+    #         return "zz_"+ticker
+        
+    #     else:
+    #         return ticker.lower()
 
     def getTickerSQLName(self, ticker):
-        sqlTickerTableStr = self.mod_table_digit_name(ticker)
-        return sqlTickerTableStr
+        if (ticker[0].isdigit()):
+            return "zz_"+ticker.lower()
+        elif(ticker.endswith('.')):
+            return ticker.replace(".", "_yy").lower()
+        else:
+            return ticker.lower()
+        

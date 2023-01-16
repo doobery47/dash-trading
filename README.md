@@ -104,3 +104,16 @@ regularMarketPrice
 
 https://github.com/tcbegley/dash-rq-demo/blob/main/README.md
 
+MENU LIST
+home 
+markets
+Portfolio
+stock_performance
+stock_update
+
+Value_investing
+breakout
+Candlestick
+
+logview
+

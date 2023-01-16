@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 
 logFileName='dash-trading.log'
 
-dash.register_page(__name__, order=8)
+dash.register_page(__name__, order=9)
 
 btn_style={'backgroundColor': '#111100', 
            'color':'white','width':'100%' , 'border':'1.5px black solid','height': '50px','text-align':'center', 'marginLeft': '20px', 'marginTop': '20px'}

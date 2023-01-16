@@ -12,7 +12,7 @@ from dash import dash_table
 import pandas as pd
 from CandelstickAnalHelper import CandlestickAnalHelper
 
-dash.register_page(__name__, order=3)
+dash.register_page(__name__, order=7)
 
 dih = dataInterfaceHelper()
 ca=CandlestickAnalHelper()

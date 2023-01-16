@@ -31,7 +31,7 @@ chart_styles = [
 
 
 
-dash.register_page(__name__,  title="Candlestick analysis", order=4)
+dash.register_page(__name__,  title="Candlestick analysis", order=8)
 
 layout = html.Div(
     [
@@ -114,10 +114,10 @@ def procCandlestick(marketVal, candlestickVal, children):
         tickers = di.get_stocks_list(markets_enum[marketVal])
         pattern_function = getattr(talib, candlestickVal)
 
-        for tickerNames in tickers:
+        for tickerName in tickers:
             try:
-                df = di.get_ticker_data(tickerNames.tickerStrpName)
-                descTxt,fig=cah.buildFigureAndDescTxt(markets_enum[marketVal],tickerNames,df,pattern_function,candlestickVal)
+                df = di.get_ticker_data(tickerName)
+                descTxt,fig=cah.buildFigureAndDescTxt(markets_enum[marketVal],tickerName,df,pattern_function,candlestickVal)
                 if(fig==None):
                     continue
                 children.append(html.Div(descTxt))

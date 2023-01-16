@@ -23,7 +23,7 @@ class CandlestickAnalHelper(DataBaseHelper):
     def __init__(self):
         DataBaseHelper.__init__(self)
 
-    def is_consolidating(self, df, ticker, percentage):
+    def is_consolidating(self, df, percentage):
         recent_candelsticks = df[-15:]        
         max_close= recent_candelsticks['close'].max()
         min_close= recent_candelsticks['close'].min()       
@@ -34,10 +34,10 @@ class CandlestickAnalHelper(DataBaseHelper):
         
         return False  
 
-    def is_breakingout(self, df, ticker, breakout_perc,breakout_trading_range):
+    def is_breakingout(self, df, breakout_perc,breakout_trading_range):
         dd=df[-1:]['close']
         last_close=df[-1:]['close'].values[0]
-        if(self.is_consolidating(df[:-1], ticker, breakout_perc)):
+        if(self.is_consolidating(df[:-1], breakout_perc)):
             range=-abs(breakout_trading_range)
             recent_close=df[range:-1]
             
@@ -57,9 +57,9 @@ class CandlestickAnalHelper(DataBaseHelper):
         
             try:
                 
-                dfTicker = pandas.read_sql_query('SELECT * FROM public."'+
+                dfTicker = pandas.read_sql_query('SELECT * FROM public.'+
                                                  tickerNames.sqlTickerTableStr.lower()+
-                                                 '" ORDER BY date DESC;', 
+                                                 ' ORDER BY date DESC;', 
                                                  con=DataBaseHelper.conn)
                 #DataBaseHelper.conn.execute("SELECT * FROM {} ORDER BY Date DESC;".format(ticker))
                 #row=cur.fetchall()
@@ -81,13 +81,11 @@ class CandlestickAnalHelper(DataBaseHelper):
                 # except: #psycopg2.OperationalError as e:
                 #     print('failed on filename: ', ticker)
                 #     continue
-                if(self.is_breakingout(dfTicker, tickerNames.tickerStrpName,breakout_perc,breakout_trading_range)):
+                if(self.is_breakingout(dfTicker,breakout_perc,breakout_trading_range)):
                     breakout_list.append(tickerNames)
                     print("{} is consolidating".format(tickerNames.tickerStrpName))
             except Exception as e: ## report the problem and remove entr from tickerr table
                 logging.getLogger().error(str(e))
-                # DataBaseHelper.conn.execute(sql, (tickerNames.tickerStrpName,tickerNames.tickerStrpName,str(e),date.today().strftime('%Y-%m-%d'),))
-                # DataBaseHelper.session.commit()   
                 continue
         return self.buildTickerNameDict(breakout_list,marketsE)
     
@@ -149,12 +147,17 @@ class CandlestickAnalHelper(DataBaseHelper):
    
     def buildFigureAndDescTxt(self, marketE, tickerNames,df,pattern_function, pattern):
         di = dataInterfaceHelper()
-        result = pattern_function(
-        df['open'], df['high'], df['low'], df['close'])
-        df[pattern]=result
-        pattern_days = df[df[pattern] != 0]
-        print(pattern_days)
-        years_ago = datetime.date.today() - relativedelta(years=1)
+        try:
+            result = pattern_function(
+            df['open'], df['high'], df['low'], df['close'])
+            df[pattern]=result
+            pattern_days = df[df[pattern] != 0]
+            if(pattern_days.empty):
+                return None,None
+            print(pattern_days)
+            years_ago = datetime.date.today() - relativedelta(years=1)
+        except Exception as e:
+            print (str(e))
         try:
             if (len(pattern_days) > 0):
                 df = di.get_historical_data(tickerNames, str(years_ago))

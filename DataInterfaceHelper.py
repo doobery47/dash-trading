@@ -4,10 +4,13 @@ import pandas as pd
 import pandas_datareader as pdr
 from DataBaseHelper import DataBaseHelper
 from datetime import date, datetime,timedelta
+from dateutil.relativedelta import relativedelta
 import yfinance as yf
 from industries import ind,sector
 import pandas
 import logging
+import sqlalchemy
+import numpy as np
 
 
 class dataInterfaceHelper(DataBaseHelper):
@@ -51,13 +54,12 @@ class dataInterfaceHelper(DataBaseHelper):
         return df
         
     def get_ticker_data(self, ticker):
-        ticker=self.mod_table_digit_name(ticker)
+        #ticker=self.mod_table_digit_name(ticker)
         #ticker="\""+ticker+"\""
-        df = pd.read_sql_query("SELECT * FROM public."+ticker,DataBaseHelper.conn)
+        df = pd.read_sql_query("SELECT * FROM public."+ticker.sqlTickerTableStr,DataBaseHelper.conn)
         return df
     
-    def get_historical_data(self, symbol, start_date = None, live=False):
-        
+    def get_historical_data(self, symbol, start_date = None, live=False):       
         df=None
         if(live):
             tickerData = yf.Ticker(symbol.tickerYahoo)
@@ -70,20 +72,26 @@ class dataInterfaceHelper(DataBaseHelper):
             for i in df.columns:
                 df[i] = df[i].astype(float)
         else:
-            df = pd.read_sql_query("SELECT * FROM "+symbol.sqlTickerTableStr, DataBaseHelper.conn)
-            for i in (df.columns):
-                if(i=='date'):
-                    continue
-                df[i] = df[i].astype(float)
-            df.index = pd.to_datetime(df.date)
-            #start_date = None
+            try:
+                df = pd.read_sql_query("SELECT * FROM "+symbol.sqlTickerTableStr, DataBaseHelper.conn)
+                for i in (df.columns):
+                    if(i=='date'):
+                        continue
+                    df[i] = df[i].astype(float)
+                df.index = pd.to_datetime(df.date)
+                #start_date = None
+                if start_date:
+                    df = df[df.index >= start_date]
+            except Exception as e:
+                print(symbol.sqlTickerTableStr+" :"+str(e))
+
+        try:
+            df.index = pd.to_datetime(df.index)
             if start_date:
                 df = df[df.index >= start_date]
-
-        df.index = pd.to_datetime(df.index)
-        if start_date:
-            df = df[df.index >= start_date]
-        return df
+            return df
+        except Exception as e:
+            print(symbol.sqlTickerTableStr+" :"+str(e))
       
     def UpdateMarketData(self, marketsE, sec=sector_enum.none):
         df = self.get_marketData(marketsE, sec)        
@@ -116,45 +124,42 @@ class dataInterfaceHelper(DataBaseHelper):
         
     def updateHistoryDataForTicker(self, tickerNameContainer):                                
             #get last record and date form table
-            sql = """INSERT INTO ticket_errors(epic, name, reason, timestamp) VALUES(%s,%s,%s,%s);"""
         
             startDate=datetime.strptime('2017-07-30','%Y-%m-%d').date()
             try: 
-                if self.tableExists(tickerNameContainer.sqlTickerTableStr.lower()):             
-                    df_db = pd.read_sql_query('SELECT * FROM "{}" ORDER BY date DESC LIMIT 1;'.format(tickerNameContainer.sqlTickerTableStr.lower()), DataBaseHelper.conn)
+                
+                if self.tableExists(tickerNameContainer.sqlTickerTableStr):             
+                    df_db = pd.read_sql_query('SELECT * FROM {} ORDER BY date DESC LIMIT 1;'.format(tickerNameContainer.sqlTickerTableStr), DataBaseHelper.conn)
                     startDate=(pd.to_datetime(df_db['date'][0]) + pd.DateOffset(days=1)).date()
                     if(startDate >= date.today()):
                         status="Wont process "+tickerNameContainer.tickerStrpName+" as end date is equal to or greater than today"
                         return status
                 else: # no table found so we will create one and set up some default data
-                    self.createTable(tickerNameContainer.sqlTickerTableStr.lower())
+                    self.createTable(tickerNameContainer.sqlTickerTableStr)
             except Exception as e: ## report the problem and remove entr from tickerr table
                 logging.getLogger().error(str(e))
                 raise e
     
             try:
                 tickerData = yf.Ticker(tickerNameContainer.tickerYahoo)
-                delta = date.today()-startDate
-                df = tickerData.history(period=str(delta.days)+'d')
-                df = df.drop('Dividends', axis=1)
-                df = df.drop('Stock Splits', axis=1)
-                #df = pdr.get_data_yahoo(tickerNameContainer.tickerYahoo, startDate, date.today())
+                delta=np.busday_count( startDate, date.today() )
+                df = tickerData.history(period=str(delta)+'d')
+                if ('Dividends' in df.columns):
+                    df = df.drop('Dividends', axis=1)
+                if ('Stock Splits' in df.columns):
+                    df = df.drop('Stock Splits', axis=1)
                 df.to_csv ('test.csv')
                 data = pd.read_csv("test.csv")
                 print(data)
                 print("processed: "+tickerNameContainer.tickerStrpName)
             except Exception as e:
                 logging.getLogger().error(str(e))
-                # DataBaseHelper.conn.execute(sql, (tickerNameContainer.tickerStrpName,tickerNameContainer.tickerStrpName,str(e),date.today().strftime('%Y-%m-%d'),))
-                # DataBaseHelper.session.commit()
                 raise e   
             
             data.rename(columns={'Open':'open', 'Close':'close', 'High':'high', 'Low':'low', 'Volume':'volume', 'Date':'date'}, inplace=True)
             data.date = pd.to_datetime(data.date)
             # need to set table name to lower as panda puts name in double quotes as we need a lower case name    
-            data.to_sql(tickerNameContainer.sqlTickerTableStr.lower(), con=DataBaseHelper.conn, 
-                         schema='public', if_exists='append',index=False)
-                
+            data.to_sql(tickerNameContainer.sqlTickerTable, con=DataBaseHelper.conn, schema='public', if_exists='append',index=False)                
             DataBaseHelper.session.commit()           
             return "Complete"
         
@@ -197,9 +202,10 @@ class dataInterfaceHelper(DataBaseHelper):
         df = df.to_html(escape=False)
         return df
         
-    def getTickerData(self, ttv, marketE):
+    def getTickerData(self, ticker, tickerData=None):
         pd.set_option('display.max_colwidth', -1)
-        stock = yf.Ticker(ttv.tickerYahoo)
+        if(tickerData==None):
+            stock = yf.Ticker(ticker.tickerYahoo)
         dict =  stock.info
         sector=dict["sector"]
         grossProfits=dict["grossProfits"]
@@ -213,7 +219,7 @@ class dataInterfaceHelper(DataBaseHelper):
         currentPrice=dict['currentPrice']
         previousClose=dict['previousClose']
         priceToBook=dict['priceToBook']
-        website = f'<a target="_blank" href="{website}">Company URL</a>'
+        #website = f'<a target="_blank" href="{website}">Company URL</a>'
         increase=round(100*(float(currentPrice)-float(previousClose))/float(previousClose),3)
         
         if(grossProfits >1000000):
@@ -239,13 +245,23 @@ class dataInterfaceHelper(DataBaseHelper):
         df = pd.DataFrame(data, columns=['Name', 'Description'])
         #df = df.to_html(escape=False)
         return df
+    
+    def deleteDuplicateRows(self,marketE):
+        tickers = self.get_stocks_list(markets_enum.ftse100)
+        for ticker in tickers: 
+            dth=datetime(2023, 1, 13).date()
+            dss=datetime(2023, 1, 16).date()
+            DataBaseHelper.conn.execute("DELETE FROM {} WHERE date = '{}';".format(ticker.sqlTickerTableStr,dth))
+            DataBaseHelper.conn.execute("DELETE FROM {} WHERE date = '{}';".format(ticker.sqlTickerTableStr,dss))
+            DataBaseHelper.session.commit()
+        
             
-    def repeat_clean(self):
-        ftseTickers = self.get_stocks_list(markets_enum.ftse100)
-        for tickerVals in ftseTickers:
-           ticker=tickerVals.sqlMarketTableStr
-           DataBaseHelper.conn.execute("DELETE FROM {} WHERE rowid > (SELECT MIN(rowid) FROM {} p2 WHERE {}.date = p2.date);".format(ticker,ticker,ticker))
-           DataBaseHelper.session.commit()
+    # def repeat_clean(self):
+    #     ftseTickers = self.get_stocks_list(markets_enum.ftse100)
+    #     for tickerVals in ftseTickers:
+    #        ticker=tickerVals.sqlMarketTableStr
+    #        DataBaseHelper.conn.execute("DELETE FROM {} WHERE rowid > (SELECT MIN(rowid) FROM {} p2 WHERE {}.date = p2.date);".format(ticker,ticker,ticker))
+    #        DataBaseHelper.session.commit()
 
     def sqlachemyTst(self):
         DataBaseHelper.engine.execute("CREATE TABLE IF NOT EXISTS films (title text, director text, year text)")  
@@ -269,6 +285,20 @@ class dataInterfaceHelper(DataBaseHelper):
                 newTicker=row['ticker']+".L"
                 DataBaseHelper.engine.execute("UPDATE isa_investments SET ticker='"+newTicker+"' WHERE ticker='"+row['ticker']+"'")
                 DataBaseHelper.session.commit()
+                
+    def removequotedTables(self, market):
+        tickers = self.get_stocks_list(market)
+        for ticker in tickers:
+            if(sqlalchemy.inspect(self.engine).has_table(ticker.sqlTickerTable)):
+                try:
+                    if(ticker.tickerStrpName == "III"):
+                        continue
+                    DataBaseHelper.engine.execute("DROP TABLE "+ticker.sqlTickerTableStr)
+                    DataBaseHelper.session.commit()
+                    # ticks = pandas.read_sql_query("SELECT * from "+ticker.sqlTickerTableStr, con=DataBaseHelper.conn)
+                    # ticks.to_sql(ticker.tickerStrpName, con=DataBaseHelper.conn, if_exists='append',index=False)                   
+                except Exception as e:
+                    print(e)
                 
     def getMarketCurrentValue(self, marketE):
         marketStr=""
@@ -330,11 +360,13 @@ if __name__ == "__main__":
     # db_logger.setLevel(db_logger_log_level)
     
     tst=dataInterfaceHelper()
-    tst.removeLastRecFromTable(markets_enum.ftse100)
-    tst.removeLastRecFromTable(markets_enum.dow)
-    tst.removeLastRecFromTable(markets_enum.nasdaq_BasicMaterials)
-    tst.removeLastRecFromTable(markets_enum.nasdaq_ConsumerStaples)
-    tst.removeLastRecFromTable(markets_enum.nasdaq_ConsumerDiscretionary)
+    # tst.removeLastRecFromTable(markets_enum.ftse100)
+    # tst.removeLastRecFromTable(markets_enum.dow)
+    # tst.removeLastRecFromTable(markets_enum.nasdaq_BasicMaterials)
+    # tst.removeLastRecFromTable(markets_enum.nasdaq_ConsumerStaples)
+    # tst.removeLastRecFromTable(markets_enum.nasdaq_ConsumerDiscretionary)
+    tst.removequotedTables(markets_enum.ftse100)
+    #tst.deleteDuplicateRows(markets_enum.ftse250)
 
     #tst.sqlachemyTst()
     #tst.UpdateMarketData(markets_enum.ftse100)

@@ -10,7 +10,7 @@ import GraphHelper as gh
 from dash import dash_table
 import logging
 
-dash.register_page(__name__,  order=2)
+dash.register_page(__name__,  order=3)
 
 ph = PortfolioHelper()
 gHelper = gh.GraphHelper()
