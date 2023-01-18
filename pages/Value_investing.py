@@ -13,8 +13,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from DataInterfaceHelper import dataInterfaceHelper
+import pageNames
 
-dash.register_page(__name__, title="Value Investing",order=6)
+dash.register_page(__name__, title="Value Investing",order=pageNames.pn['Value_investing'])
 dih = dataInterfaceHelper()
 gh = GraphHelper()
 
@@ -159,8 +160,6 @@ def view_market_data(marketVal, reviewBtn):
         return children      
            
             
-        
-
 @callback(
     Output(component_id='val-inv-output', component_property='children'),
     State(component_id='markets', component_property='value'),

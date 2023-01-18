@@ -3,10 +3,11 @@ from dash import Dash, dcc, html,callback, ctx
 from dash.dependencies import Input, Output
 from dash import Input, MATCH, Output, callback, dcc, html
 import dash_bootstrap_components as dbc
+import pageNames
 
 logFileName='dash-trading.log'
 
-dash.register_page(__name__, order=9)
+dash.register_page(__name__, order=pageNames.pn['logview'])
 
 btn_style={'backgroundColor': '#111100', 
            'color':'white','width':'100%' , 'border':'1.5px black solid','height': '50px','text-align':'center', 'marginLeft': '20px', 'marginTop': '20px'}

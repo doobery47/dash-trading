@@ -8,11 +8,13 @@ from marketsenum import markets_enum
 import pandas as pd
 from StockUpdateHelper import StockUpdateHelper
 import logging
+import pageNames
 #from dash.long_callback import DiskcacheLongCallbackManager
+
 
 app = Dash(__name__)
 
-dash.register_page(__name__,  title="Stock Updates", order=5)
+dash.register_page(__name__,  title="Stock Updates", order=pageNames.pn['stock_performance'])
 
 def startList():
     suh=StockUpdateHelper()
@@ -113,7 +115,7 @@ def build_market_data(n_intervals: int,marketVal):
             dfStatus=pd.DataFrame(columns=["Ticker", "Status"])
             for ticker in ticker_list:
                 try:
-                    if(ticker.tickerStrpName.lower() == 'adm' ):
+                    if(ticker.tickerStrpName.lower() == 'intc' ):
                         print('here')
                     status=di.updateHistoryDataForTicker(ticker)
                 except Exception as e:

@@ -8,8 +8,9 @@ from dash import Input, MATCH, Output, callback, dcc, html
 from dash.exceptions import PreventUpdate
 import logging
 from UIHelper import UIHelper
+import pageNames
 
-dash.register_page(__name__, order=2)
+dash.register_page(__name__, order=pageNames.pn['markets'])
 
 dih = dataInterfaceHelper()
 

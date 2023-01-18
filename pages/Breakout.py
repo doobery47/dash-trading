@@ -11,8 +11,9 @@ from dash.exceptions import PreventUpdate
 from dash import dash_table
 import pandas as pd
 from CandelstickAnalHelper import CandlestickAnalHelper
+import pageNames
 
-dash.register_page(__name__, order=7)
+dash.register_page(__name__, order=pageNames.pn['breakout'])
 
 dih = dataInterfaceHelper()
 ca=CandlestickAnalHelper()

@@ -9,10 +9,11 @@ import pandas as pd
 from StockUpdateHelper import StockUpdateHelper
 import logging
 #from dash.long_callback import DiskcacheLongCallbackManager
+import pageNames
 
 app = Dash(__name__)
 
-dash.register_page(__name__,  title="Stock performance", order=4)
+dash.register_page(__name__,  title="Stock performance", order=pageNames.pn['stock_performance'])
 
 # select market
 # by selecting market will pre-populate company dropdown

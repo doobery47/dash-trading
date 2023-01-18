@@ -15,7 +15,6 @@ downloaddatapartial?startDate=08/03/2022 00:00:00&endDate=09/02/2022 23:59:59&da
 
 TODO
 1. Get news and info on indivisual stocks
-2. Get market current values and data
 3. get info and positions on invidual sectors.
     get current positions from https://www.lse.co.uk/share-prices/sectors/
     would need to scrape this data. 
@@ -28,9 +27,6 @@ TODO
     Good source of info for combine is https://www.youtube.com/watch?v=NNu1DjWcYeY 
 6. Home - double up graphs.
 7. Home - "index displayed rather than "Date"
-8. Home - Option to make graph either candel or line
-9. Home - Cache so that the graphs data is not updated.
-10. Home - Cache the graphs
 11. Portfolio - Add option to make it either current or old
 12. Portfolio - create current with current prices.
 13. Portfolio - Add share prices as well.
@@ -104,16 +100,8 @@ regularMarketPrice
 
 https://github.com/tcbegley/dash-rq-demo/blob/main/README.md
 
-MENU LIST
-home 
-markets
-Portfolio
-stock_performance
-stock_update
 
-Value_investing
-breakout
-Candlestick
+features
+Still of stocks that have made money year on year over 2 or 3 years
 
-logview
 

@@ -16,6 +16,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import talib
 import logging
+import pageNames
 
 breakout_perc = 2
 breakout_trading_range = 16
@@ -31,7 +32,7 @@ chart_styles = [
 
 
 
-dash.register_page(__name__,  title="Candlestick analysis", order=8)
+dash.register_page(__name__,  title="Candlestick analysis", order=pageNames.pn['Candlestick'])
 
 layout = html.Div(
     [

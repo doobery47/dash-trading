@@ -141,9 +141,8 @@ class dataInterfaceHelper(DataBaseHelper):
                 raise e
     
             try:
-                tickerData = yf.Ticker(tickerNameContainer.tickerYahoo)
-                delta=np.busday_count( startDate, date.today() )
-                df = tickerData.history(period=str(delta)+'d')
+                df = yf.download(tickerNameContainer.tickerYahoo, start=startDate, end=date.today(),
+                   group_by="ticker")
                 if ('Dividends' in df.columns):
                     df = df.drop('Dividends', axis=1)
                 if ('Stock Splits' in df.columns):

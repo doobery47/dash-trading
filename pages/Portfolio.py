@@ -9,8 +9,9 @@ from PortfolioTypeE import PortfolioTypeE
 import GraphHelper as gh
 from dash import dash_table
 import logging
+import pageNames
 
-dash.register_page(__name__,  order=3)
+dash.register_page(__name__,  order=pageNames.pn['Portfolio'])
 
 ph = PortfolioHelper()
 gHelper = gh.GraphHelper()

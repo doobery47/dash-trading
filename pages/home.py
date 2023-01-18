@@ -59,48 +59,45 @@ layout = html.Div(
             ]
         ),
         dbc.Row([
-            dbc.Col(
-                [
-                    dbc.Col([dcc.Graph(id='ftse100', figure={},
-                            style={'height': '40vh'})]),
-                ], width=4
-            ),
-            dbc.Col(
-                [
-                    dbc.Col([dcc.Graph(id='ftse250', figure={},
-                            style={'height': '40vh'})])
-                ], width=4
-            )
-            ,
-            dbc.Col(width=4)
-
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dcc.Graph(id='ftse100', figure={}, config={'displayModeBar': False},style={'height': '30vh'}),
+                ])
+            ]),
+        ], width=4),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dcc.Graph(id='ftse250', figure={}, config={'displayModeBar': False},style={'height': '30vh'}),
+                ])
+            ]),
+        ], width=4),
+               dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dcc.Graph(id='dw', figure={}, config={'displayModeBar': False},style={'height': '30vh'}),
+                ])
+            ]),
+        ], width=4),
         ]),
-        dbc.Row([
-            dbc.Col(
-                [
-                    dbc.Col([dcc.Graph(id='dw', figure={},
-                            style={'height': '40vh'})]),
-                ], width=4
-            ),
-            dbc.Col(
-                [
-                    dbc.Col([dcc.Graph(id='sp', figure={},
-                            style={'height': '40vh'})])
-                ], width=4
-            ),
-            dbc.Col(width=4)
-
-        ]),
-        dbc.Row([
-            dbc.Col(
-                [
-                    dbc.Col([dcc.Graph(id='nas', figure={},
-                            style={'height': '40vh'})]),
-                ], width=4
-            ),
-            dbc.Col(width=4)
-
-        ]),
+           dbc.Row([
+                      dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dcc.Graph(id='sp', figure={}, config={'displayModeBar': False},style={'height': '30vh'}),
+                ])
+            ]),
+        ], width=6),
+                          dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    dcc.Graph(id='nas', figure={}, config={'displayModeBar': False},style={'height': '30vh'}),
+                ])
+            ]),
+        ], width=6),
+           ])
+                    
     ])
 
 
