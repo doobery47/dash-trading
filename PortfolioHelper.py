@@ -105,7 +105,7 @@ class PortfolioHelper(DataBaseHelper):
                 if(tick==None):
                     profitLossVal=0
                 else:
-                    currentVal=si.get_live_price(tick)
+                    currentVal, previousVal=si.get_live_price(tick)
                     profitLossVal=(tickerRec['Outstanding']*currentVal)-profitLossVal
                 currentCount=currentCount+1
                 #profitLossVal=profitLossVal+float(tickerRec['Profit_Loss'])

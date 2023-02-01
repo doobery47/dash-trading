@@ -11,18 +11,18 @@ class markets_enum(Enum):
     dow=6
     s_and_p=8
     nasdaq=9
-    nasdaq_BasicMaterials=10
-    nasdaq_ConsumerDiscretionary=11
-    nasdaq_ConsumerStaples=12
-    nasdaq_Energy=13
-    nasdaq_Finance=14
-    nasdaq_HealthCare=15
-    nasdaq_Industrials=16
-    nasdaq_Miscellaneous=17
-    nasdaq_RealEstate=18
-    nasdaq_Technology=19
-    nasdaq_Telecommunications=20
-    nasdaq_Utilities=21
+    nasdaq_basic_materials=10
+    nasdaq_consumer_discretionary=11
+    nasdaq_consumer_staples=12
+    nasdaq_energy=13
+    nasdaq_finance=14
+    nasdaq_health_care=15
+    nasdaq_industrials=16
+    nasdaq_miscellaneous=17
+    nasdaq_realestate=18
+    nasdaq_technology=19
+    nasdaq_telecommunications=20
+    nasdaq_utilities=21
   
     
     def tableName(self):

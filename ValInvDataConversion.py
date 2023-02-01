@@ -1,3 +1,6 @@
+
+
+
 from DataBaseHelper import DataBaseHelper
 import pandas as pd
 from PortfolioTypeE import PortfolioTypeE
@@ -8,6 +11,7 @@ import ast
 from datetime import date, datetime, timedelta
 import logging
 import sys
+import dropables
 from sqlalchemy import (
     create_engine,
     MetaData,
@@ -183,7 +187,7 @@ class ValInvDataConversion(DataBaseHelper):
                 df = pd.DataFrame.from_dict(bs, orient="index")
                 df["date"] = theDate
                 df.rename(columns={list(df)[0]: "date"}, inplace=True)
-                df["epic"] = ticker.lower()
+                df["epic"] = ticker.upper()
                 df["market"] = marketE.name
                 try:
                     df.to_sql(
@@ -219,7 +223,7 @@ class ValInvDataConversion(DataBaseHelper):
                 df = pd.DataFrame.from_dict(bs, orient="index")
                 df["date"] = theDate
                 df.rename(columns={list(df)[0]: "date"}, inplace=True)
-                df["epic"] = ticker.lower()
+                df["epic"] = ticker.upper()
                 df["market"] = marketE.name
                 try:
                     df.to_sql(
@@ -265,7 +269,7 @@ class ValInvDataConversion(DataBaseHelper):
                 df = pd.DataFrame.from_dict(bs, orient="index")
                 df["date"] = theDate
                 df.rename(columns={list(df)[0]: "date"}, inplace=True)
-                df["epic"] = ticker.lower()
+                df["epic"] = ticker.upper()
                 df["market"] = marketE.name
                 try:
                     df.to_sql(
@@ -317,19 +321,31 @@ class ValInvDataConversion(DataBaseHelper):
             except Exception as e:
                 print(str(e))
 
+    # def dropTables(self):
+    #     drops=dropables.dt
+    #     for drop in drops:
+    #         try:
+    #             #nm = '"' + nm + '"'
+    #             DataBaseHelper.conn.execute(
+    #                 "DROP TABLE "+drop
+    #             )
+    #             DataBaseHelper.session.commit()
+    #         except Exception as e:
+    #             logging.getLogger().debug(str(e))            
 
 if __name__ == "__main__":
     dbc = ValInvDataConversion()
     LOG = dbc.Logger("deb")
 
-    market = markets_enum.nasdaq
-    # dbc.clearTables(market, "val_inv_anal_balsheet")
+    market = markets_enum.s_and_p
+    # # dbc.clearTables(market, "val_inv_anal_balsheet")
     dbc.balanceSheetConversion(market)
 
-    # dbc.clearTables(market, "val_inv_anal_cashsheet")
+    # # dbc.clearTables(market, "val_inv_anal_cashsheet")
     dbc.cashStatementConversion(market)
 
-    # dbc.clearTables(market, "val_inv_anal_incomesheet")
+    # # dbc.clearTables(market, "val_inv_anal_incomesheet")
     dbc.incomeStatementConversion(market)
 
-    # dbc.updateTableWithMarket(market)
+    #dbc.updateTableWithMarket(market)
+    #dbc.dropTables()

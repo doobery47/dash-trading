@@ -40,7 +40,7 @@ layout = html.Div(
                                                  inputStyle={
                                                      "marginRight": "20px"},
                                                  value='line')]),
-                    ], xs=10, sm=10, md=8, lg=4, xl=4, xxl=4
+                    ], width={'size': 2, 'offset': 1}
                 ),
                 dbc.Col(
                     [
@@ -58,7 +58,7 @@ layout = html.Div(
                     [
                     html.Div(id='markets_div'),
                     
-                    ],width={'size': 2, 'offset': 1}
+                    ],width={'size': 3, 'offset': 1}
                 )
             ]
         ),
@@ -66,7 +66,7 @@ layout = html.Div(
             dbc.Col(
                 [
                     html.Div(id='dynamic-comp-gr')                    
-                ], width=6
+                ], width=4
             ),
             dbc.Col(
             [
@@ -74,7 +74,15 @@ layout = html.Div(
                     'type': 'dynamic-tab',
                     'index': 0
                 })                    
-                ], width=6
+                ], width=4
+            ),
+            dbc.Col(
+            [
+                    html.Div(id={
+                    'type': 'dynamic-rss',
+                    'index': 0
+                })                    
+                ], width=4
             )
         ])
 
@@ -117,6 +125,7 @@ def update_output(date_value):
 @callback(
     Output({'type': 'dynamic-graph', 'index': MATCH}, 'figure'),
     Output({'type': 'dynamic-tab', 'index': MATCH}, 'children'),
+    Output({'type': 'dynamic-rss', 'index': MATCH}, 'children'),
     Input(component_id='markets-mar', component_property='value'),
     Input(component_id='chart-type_mar', component_property='value'),
     Input(component_id='my-date-picker-single', component_property='date'),
@@ -138,14 +147,14 @@ def buildCompData(marketVal, chartVal, dateVal, ticker):
         compName=dih.get_company_name(symbol, marketE)+"("+ticker+")"
         data = dih.get_historical_data(symbol, dateVal)
         gh = GraphHelper()
-        gr=gh.getGraph(data,compName,currency, 0.0,0.0,chartVal)
+        gr=gh.getGraph(data,compName,currency,chartVal)
         gr.update_layout(margin=dict(t=50, b=5, l=2, r=2))
                
-        tData=dih.getTickerData(symbol)
+        tData,dd=dih.getTickerData(symbol)
         tb=gh.buildTable(tData)
         ht=html.Div(tb)
         
-        return gr,ht
+        return gr,ht,dih.getRssNews(symbol)
     else:
         raise PreventUpdate
 

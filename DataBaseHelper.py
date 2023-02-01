@@ -86,11 +86,10 @@ class DataBaseHelper:
         elif (se == sector_enum.Utilities):
             return "Utilities"
 
-    def get_company_name(self, tickerNames, marketsE):
+    def get_company_name(self, ticker, marketsE):
 
         df = pd.read_sql_query("SELECT * FROM public.{} WHERE epic={};".format(marketsE.name,
-                                                                                 tickerNames.sqlMarketTableStr), DataBaseHelper.conn)
-        print(df)
+                                                                                 ticker.sqlMarketTableStr), DataBaseHelper.conn)
         try:
             f = df['name']
             dd = df.iloc[0]['name']
@@ -124,20 +123,17 @@ class DataBaseHelper:
         )
         meta.create_all(self.engine)
 
-    def get_compound_ticker_name(self, ticker, stockE):
-        if(ticker.lower()=="av."):
-            print("here")
+    def get_compound_ticker_name(self, ticker, marketE):
         tickerYahooExt = ""  # default value
-        if (stockE == markets_enum.ftse100):
+        if (marketE == markets_enum.ftse100):
             tickerYahooExt = ".L"
-        elif (stockE == markets_enum.ftse250):
+        elif (marketE == markets_enum.ftse250):
             tickerYahooExt = ".L"
         tickerStrpName = re.sub("[.]", "", ticker)
         sqlTickerTableStr = '"'+self.getTickerSQLName(ticker)+'"' # with quotes
         sqlTickerTable = self.getTickerSQLName(ticker) # without quotes
         sqlMarketTableStr = "'"+ticker.upper()+"'" # This is used to get the ticker value out of the market tables. They are all uppercase
         tickerYahoo = tickerStrpName+tickerYahooExt
-        #tickerYahoo=re.sub("[..]", ".", tickerYahoo)
 
         ttv = TickerTypeVals(ticker, sqlMarketTableStr,
                              sqlTickerTableStr, sqlTickerTable, ticker, tickerYahoo)
@@ -147,11 +143,7 @@ class DataBaseHelper:
     def get_stocks_list(self, stockE):
         df = self.query_columns_to_dataframe(stockE.name, ['epic'])
         tickers = df['epic']
-        print("Started processing")
-
         new_ticker_lst = []
-
-        print(tickers)
         for ticker in tickers:
             new_ticker_lst.append(self.get_compound_ticker_name(ticker, stockE))
 

@@ -28,29 +28,29 @@ layout = html.Div(
                                 {'label': 'FTSE 250', 'value': 'ftse250'},
                                 {'label': 'DOW', 'value': 'dow'},
                                 {'label': 'NASDAQ-Basic Materials',
-                                    'value': 'nasdaq_BasicMaterials'},
+                                    'value': 'nasdaq_basic_materials'},
                                 {'label': 'NASDAQ-Consumer Discretionary',
-                                    'value': 'nasdaq_ConsumerDiscretionary'},
+                                    'value': 'nasdaq_consumer_discretionary'},
                                 {'label': 'NASDAQ-Consumer Staples',
-                                    'value': 'nasdaq_ConsumerStaples'},
+                                    'value': 'nasdaq_consumer_staples'},
                                 {'label': 'NASDAQ-Energy',
-                                    'value': 'nasdaq_Energy'},
+                                    'value': 'nasdaq_energy'},
                                 {'label': 'NASDAQ-Finance',
-                                    'value': 'nasdaq_Finance'},
+                                    'value': 'nasdaq_finance'},
                                 {'label': 'NASDAQ-Health Care',
-                                    'value': 'nasdaq_HealthCare'},
+                                    'value': 'nasdaq_health_care'},
                                 {'label': 'NASDAQ-Industrials',
-                                    'value': 'nasdaq_Industrials'},
+                                    'value': 'nasdaq_industrials'},
                                 {'label': 'NASDAQ-Miscellaneous',
-                                    'value': 'nasdaq_Miscellaneous'},
+                                    'value': 'nasdaq_miscellaneous'},
                                 {'label': 'NASDAQ-Real Estate',
-                                    'value': 'nasdaq_RealEstate'},
+                                    'value': 'nasdaq_realestate'},
                                 {'label': 'NASDAQ-Technology',
-                                    'value': 'nasdaq_Technology'},
+                                    'value': 'nasdaq_technology'},
                                 {'label': 'NASDAQ-Telecommunications',
-                                    'value': 'nasdaq_Telecommunications'},
+                                    'value': 'nasdaq_telecommunications'},
                                 {'label': 'NASDAQ-Utilities',
-                                    'value': 'nasdaq_Utilities'},
+                                    'value': 'nasdaq_utilities'},
                             ]
                         ),
                         width={'size': 3}
@@ -128,11 +128,7 @@ def build_market_data(marketVal):
     prevent_initial_call=True
     
 )
-# def buildCompData(marketVal, chartVal, bperVal, days, compVar):
-#     print("compVar "+str(compVar))
-#     raise PreventUpdate
 
-#def buildCompData(marketVal, chartVal, dateVal, ticker):
 def buildCompData(marketVal, chartType, bperVal, days, compVar):
     if compVar is None:
         # PreventUpdate prevents ALL outputs updating
@@ -140,7 +136,7 @@ def buildCompData(marketVal, chartType, bperVal, days, compVar):
     if(compVar is not None):
         df = ca.breakout(compVar, days)
         gh = GraphHelper()
-        gr=gh.getGraph(df,compVar,"£", 0.0,0.0,chartType)
+        gr=gh.getGraph(df,compVar,"£", chartType)
         gr.update_layout(margin=dict(t=100, b=5, l=2, r=2),width=1200, height=500)
                 
         return gr

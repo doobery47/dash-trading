@@ -13,7 +13,7 @@ class GraphHelper:
     
     #https://www.marketwatch.com/investing/index/ukx/downloaddatapartial?startdate=08/03/2022 00:00:00&enddate=09/02/2022 23:59:59&daterange=d30&frequency=p1d&csvdownload=true&downloadpartial=false&newdates=false&countrycode=uk
     
-    def getGraph(self, df, marketName, currency, currentValue=0.0, startValue=0.0, graphType='line'):
+    def getGraph(self, df, marketName, currency,  graphType='line'):
         # get the last date in the db table. Update the table
         # create the graph and return
         
@@ -23,22 +23,22 @@ class GraphHelper:
         fig = go.Figure()
         lineColour='blue'
         
-        if(currentValue < startValue):
-            lineColour="RebeccaPurple"
+        # if(currentValue < startValue):
+        #     lineColour="RebeccaPurple"
         
-        if(startValue !=0.0):
-            fig = go.Figure(go.Indicator(
-                align = 'center', mode = 'number+delta', value = currentValue,
-                title = {
-                'text': "Current value<br><span style='fontSize:0.8em;color:gray'>",
-                'font':{'size':20}},
-                delta = {
-                    'reference': startValue, 'relative': True, 'valueformat':'.2%',
-                    'font':{
-                    'size':18}},
-                    number = {
-                    'font':{
-                    'size':40}}))  
+        # if(startValue !=0.0):
+        #     fig = go.Figure(go.Indicator(
+        #         align = 'center', mode = 'number+delta', value = currentValue,
+        #         title = {
+        #         'text': "Current value<br><span style='fontSize:0.8em;color:gray'>",
+        #         'font':{'size':20}},
+        #         delta = {
+        #             'reference': startValue, 'relative': True, 'valueformat':'.2%',
+        #             'font':{
+        #             'size':18}},
+        #             number = {
+        #             'font':{
+        #             'size':40}}))  
         
         if(graphType == 'line'):
             fig.add_trace(go.Scatter(x=df.index, y=df["open"]))
@@ -46,7 +46,6 @@ class GraphHelper:
             #fig = px.line(data_frame=df,x=df.index, y=df["open"])
             
         else:            
-            print(df)
             fig.add_trace(go.Candlestick(x=df.index, open=df["open"], high=df["high"],
                         low=df["low"], close=df["close"], name="OHLC" ))
 
@@ -73,19 +72,19 @@ class GraphHelper:
         'index': 0
         },
         style_as_list_view=True,
-        style_cell={'padding': '5px','textAlign': 'left'},   # style_cell refers to the whole table
+        style_cell={
+        'height': 'auto',
+        # all three widths are needed
+        'minWidth': '200px', 'width': '200px', 'maxWidth': '200px',
+        'whiteSpace': 'normal',
+        'padding': '5px','textAlign': 'left'
+    },
+        #style_cell={'padding': '5px','textAlign': 'left'},   # style_cell refers to the whole table
         style_header={
             'backgroundColor': 'white',
             'fontWeight': 'bold',
             'border': '1px solid black'
         },
-        #----------------------------------------------------------------
-        # Striped Rows
-        #----------------------------------------------------------------
-        # style_header={
-        #     'backgroundColor': 'rgb(230, 230, 230)',
-        #     'fontWeight': 'bold'
-        # },
         style_data_conditional=[        # style_data.c refers only to data rows
             {
                 'if': {'row_index': 'odd'},
@@ -98,7 +97,7 @@ class GraphHelper:
                   
         ],
         fixed_rows={'headers': True},
-        style_table={'height': height},  # defaults to 500
+        style_table={'height': '100%'},  # defaults to 500
         data=dff.to_dict('records'),
         style_data={
             'whiteSpace': 'normal',
@@ -136,13 +135,6 @@ class GraphHelper:
         upper_band = rolling_mean + (rolling_std*num_of_std)
         lower_band = rolling_mean - (rolling_std*num_of_std)
         return rolling_mean, upper_band, lower_band
-        
-    def getGraph2(self, df, marketName, currency, currentValue=0.0, startValue=0.0, graphType='line'):
-        df['MA200'] = df['close'].rolling(window=200, min_periods=0).mean()
-        fig = px.line(x=df.index, y=df["open"], title=marketName+' historical price chart',
-             )
-        fig.update_layout(yaxis_title='Stock Price (pence per Shares)', xaxis_tickangle=45)
-        return fig
 
     def buildTable(self, dff, height=500):
     
@@ -170,9 +162,6 @@ class GraphHelper:
         layout = dict()
 
         fig = dict(data=data, layout=layout)
-
-        # Create the layout object
-
         fig['layout'] = dict()
         fig['layout']['plot_bgcolor'] = 'rgb(250, 250, 250)'
         fig['layout']['xaxis'] = dict(rangeselector=dict(visible=True))

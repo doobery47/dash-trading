@@ -14,7 +14,7 @@ import pageNames
 
 app = Dash(__name__)
 
-dash.register_page(__name__,  title="Stock Updates", order=pageNames.pn['stock_performance'])
+dash.register_page(__name__,  title="Stock Updates", order=pageNames.pn['stock_updating'])
 
 def startList():
     suh=StockUpdateHelper()
@@ -54,29 +54,29 @@ layout = html.Div(
                                 {'label': 'FTSE 250', 'value': 'ftse250'},
                                 {'label': 'DOW', 'value': 'dow'},
                                 {'label': 'NASDAQ-Basic Materials',
-                                    'value': 'nasdaq_BasicMaterials'},
+                                    'value': 'nasdaq_basic_materials'},
                                 {'label': 'NASDAQ-Consumer Discretionary',
-                                    'value': 'nasdaq_ConsumerDiscretionary'},
+                                    'value': 'nasdaq_consumer_discretionary'},
                                 {'label': 'NASDAQ-Consumer Staples',
-                                    'value': 'nasdaq_ConsumerStaples'},
+                                    'value': 'nasdaq_consumer_staples'},
                                 {'label': 'NASDAQ-Energy',
-                                    'value': 'nasdaq_Energy'},
+                                    'value': 'nasdaq_energy'},
                                 {'label': 'NASDAQ-Finance',
-                                    'value': 'nasdaq_Finance'},
+                                    'value': 'nasdaq_finance'},
                                 {'label': 'NASDAQ-Health Care',
-                                    'value': 'nasdaq_HealthCare'},
+                                    'value': 'nasdaq_health_care'},
                                 {'label': 'NASDAQ-Industrials',
-                                    'value': 'nasdaq_Industrials'},
+                                    'value': 'nasdaq_industrials'},
                                 {'label': 'NASDAQ-Miscellaneous',
-                                    'value': 'nasdaq_Miscellaneous'},
+                                    'value': 'nasdaq_miscellaneous'},
                                 {'label': 'NASDAQ-Real Estate',
-                                    'value': 'nasdaq_RealEstate'},
+                                    'value': 'nasdaq_realestate'},
                                 {'label': 'NASDAQ-Technology',
-                                    'value': 'nasdaq_Technology'},
+                                    'value': 'nasdaq_technology'},
                                 {'label': 'NASDAQ-Telecommunications',
-                                    'value': 'nasdaq_Telecommunications'},
+                                    'value': 'nasdaq_telecommunications'},
                                 {'label': 'NASDAQ-Utilities',
-                                    'value': 'nasdaq_Utilities'},
+                                    'value': 'nasdaq_utilities'},
                             ]
                         ),
                         style={'marginBottom': 50, 'marginTop': 50, 'width':'40%'}
@@ -115,8 +115,6 @@ def build_market_data(n_intervals: int,marketVal):
             dfStatus=pd.DataFrame(columns=["Ticker", "Status"])
             for ticker in ticker_list:
                 try:
-                    if(ticker.tickerStrpName.lower() == 'intc' ):
-                        print('here')
                     status=di.updateHistoryDataForTicker(ticker)
                 except Exception as e:
                     data.append([ticker.ticker, repr(e)])                    

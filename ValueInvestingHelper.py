@@ -4,9 +4,7 @@
 from DataBaseHelper import DataBaseHelper
 import concurrent.futures as cf
 from yahoofinancials import YahooFinancials
-import ast
 import time
-import os
 from marketsenum import markets_enum
 import pandas as pd
 import logging
@@ -75,16 +73,20 @@ class ValueInvestingHelper(DataBaseHelper):
         cf.wait(futures)
         end = time.time()
 
-        self.__sheetConversion(self.balanceSheet, "val_inv_anal_balanceSheet")
-        self.__sheetConversion(self.incomeStatement, "val_inv_anal_incomeStatement")
-        self.__sheetConversion(self.cashStatement, "val_inv_anal_cashStatement.txt")
+        self.__sheetConversion(self.balanceSheet, "val_inv_anal_balsheet",marketE)
+        self.__sheetConversion(self.incomeStatement, "val_inv_anal_incomesheet",marketE)
+        self.__sheetConversion(self.cashStatement, "val_inv_anal_cashsheet",marketE)
 
         print("  time taken {:.2f} s".format(end - start))
 
-    def __sheetConversion(self, sheetData, sheetTableExt):
+    def __sheetConversion(self, sheetData, sheetTableExt,marketE):
+        
+        ## remove the old records first
+        self.engine.execute("DELETE FROM "+sheetTableExt+" WHERE market='"+marketE.name+"'")
+        DataBaseHelper.session.commit()
+
 
         for ticker in sheetData:
-            self.createBalanceSheetTable(ticker.lower())
             if sheetData[ticker] == None:
                 continue
 
@@ -95,9 +97,12 @@ class ValueInvestingHelper(DataBaseHelper):
                 df = pd.DataFrame.from_dict(bs, orient="index")
                 df["date"] = theDate
                 df.rename(columns={list(df)[0]: "date"}, inplace=True)
+                df['market']=marketE.name
+                df["epic"] = ticker.lower()
+
                 try:
                     df.to_sql(
-                        ticker.lower() + "_balsheet",
+                        sheetTableExt,
                         con=DataBaseHelper.engine,
                         if_exists="append",
                         index=False,
@@ -220,14 +225,37 @@ class ValueInvestingHelper(DataBaseHelper):
         print("Some key data missing", count_missing, "out of", len(self.balanceSheet))
         print("EPS Growth NaN", count_eps_0, "out of", len(self.balanceSheet))
 
+    def getTableStatusData(self):
+        # go through val_inv_anal_balsheet and get the last time each of the marketss where updated
+        # create dictionary and return to be displayed in a table
+        rList=[]
+        
+        for market in markets_enum:
+            if(market.name=='s_and_p' or market.name=='nasdaq'):
+                continue
+            
+            df = pd.read_sql_query("SELECT * FROM public.val_inv_anal_balsheet where market='{}' ORDER BY date desc limit 1".format(
+                                                                                 market.name), DataBaseHelper.conn)
+            if(df.empty):
+                mDate="Unknown"
+            else:
+                mDate=df.iloc[-1]['date']
+            rList.append([market.name,mDate])
+            
+        return pd.DataFrame (rList, columns = ['market', 'last_update'])
+        
+        
 
 if __name__ == "__main__":
     vih = ValueInvestingHelper()
-    vih.financialInfo(markets_enum.dow)
-    vih.processData(markets_enum.ftse100)
+    # vih.financialInfo(markets_enum.dow)
+    # vih.processData(markets_enum.ftse100)
+    #vih.deleteRows()
 
     # vih.finalResults()
     # ttv=TickerTypeVals("","","","ABDN","ABDN.L")
     # ttv.tickerYahoo="ABDN.L"
     # ttv.tickerStrpName="ABDN"
     # vih.getTickerData(ttv, markets_enum.ftse100)
+    
+    vih.getTableStatusData()
