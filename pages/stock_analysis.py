@@ -177,17 +177,15 @@ def build_market_data(marketVal, analPeriod, valueInvesting):
 
             vih.processDataForTickers(tickers2Proc, marketE)
             vih_tickers = vih.finalResults()
-            print(performaceStock)
-            print(vih_tickers)
-            performaceStock = performaceStock[
-                performaceStock["ticker"].isin(vih_tickers)
-            ]
-        df = performaceStock
-        df["id"] = df["ticker"]
-        df.set_index("id", inplace=True, drop=False)
+            vih_tickersU= list(map(str.upper,vih_tickers))
+            intersect = list(set(performaceStock["ticker"].tolist()).intersection(vih_tickersU)) # the rows that are in both analysis and Value Investing
+            performaceStock = performaceStock.loc[performaceStock['ticker'].isin(intersect)]
+
+        performaceStock["id"] = performaceStock["ticker"]
+        performaceStock.set_index("id", inplace=True, drop=False)
         # create an interactive table from list
-        if performaceStock.shape[0] > 0:
-            return sah.buildDashTable(performaceStock, dates, marketE)
+        #if performaceStock.shape[0] > 0:
+        return sah.buildDashTable(performaceStock, dates, marketE)
     else:
         raise PreventUpdate
 
