@@ -1,33 +1,36 @@
-from marketsenum import markets_enum
+
+
+
 import pandas as pd
-from DataBaseHelper import DataBaseHelper
+from BaseHelper import BaseHelper
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+import time
 import pandas
 import holidays
 from dash import dash_table
 from DataInterfaceHelper import dataInterfaceHelper
+from ExtFinanceInterface import ExtFinanceInterface
+import numpy as np
+## To use statsmodels for linear regression
+import statsmodels.formula.api as smf
 
 
-class StockAnalysisHelper(DataBaseHelper):
+from dash import Dash, html
+
+
+import collections
+
+## To use sklearn for linear regression
+from sklearn.linear_model import LinearRegression
+
+
+class StockAnalysisHelper(BaseHelper):
     def __init__(self):
-        DataBaseHelper.__init__(self)
-
-    def dateMove(self, dat, marketE):
-        if dat.weekday() > 4:
-            dat = dat - timedelta(
-                days=dat.weekday() - 4
-            )  # move sat or sunday to firday
-        else:
-            if marketE == markets_enum.ftse100 or marketE == markets_enum.ftse250:
-                this_holiday = holidays.UK()
-            else:
-                this_holiday = holidays.US()
-
-            if dat in this_holiday:
-                dat = dat - timedelta(days=1)
-                self.dateMove(dat, marketE)
-        return str(dat.date())
+        BaseHelper.__init__(self)
+    
+    dih = dataInterfaceHelper()
+    efi=ExtFinanceInterface()
 
     def topShares(self, marketE, years=3):
         tickers = self.get_stocks_list(marketE)
@@ -36,10 +39,10 @@ class StockAnalysisHelper(DataBaseHelper):
         # fri=4
         # sat=5#
         # sun=6
-        today = self.dateMove(datetime.now() - timedelta(days=1), marketE)
-        one_yrs_ago = self.dateMove(datetime.now() - relativedelta(years=1), marketE)
-        two_yrs_ago = self.dateMove(datetime.now() - relativedelta(years=2), marketE)
-        three_yrs_ago = self.dateMove(datetime.now() - relativedelta(years=3), marketE)
+        today = str(self.holidayDateAdjust(datetime.now() - timedelta(days=1), marketE))
+        one_yrs_ago = str(self.holidayDateAdjust(datetime.now() - relativedelta(years=1), marketE))
+        two_yrs_ago = str(self.holidayDateAdjust(datetime.now() - relativedelta(years=2), marketE))
+        three_yrs_ago = str(self.holidayDateAdjust(datetime.now() - relativedelta(years=3), marketE))
         dates = []
         dates.append(today)
         dates.append(one_yrs_ago)
@@ -54,14 +57,15 @@ class StockAnalysisHelper(DataBaseHelper):
                 str(two_yrs_ago),
                 str(one_yrs_ago),
                 str(today),
-                "sector",
-                "gross profit",
-                "profit margin",
-                "cash",
-                "debt",
-                "forward EPS",
-                "Book Val",
-                "forward PE",
+                'yahoo'
+                # "sector",
+                # "gross profit",
+                # "profit margin",
+                # "cash",
+                # "debt",
+                # "forward EPS",
+                # "Book Val",
+                # "forward PE",
             ]
         )
 
@@ -69,7 +73,6 @@ class StockAnalysisHelper(DataBaseHelper):
             # so we get the last recorded day info and the year/2 year and then 3 years.
             # if last record close is higher than 1/2/3 years ago then we have a hit.
             # record the ticker name and close values
-            dih = dataInterfaceHelper()
 
             df = pd.read_sql_query(
                 "select date,close from "
@@ -79,38 +82,42 @@ class StockAnalysisHelper(DataBaseHelper):
                 ),
                 self.conn,
             )
+
             ## look to see if any missing. If so then make another
-            if (
-                df.shape[0] == 4
-            ):  # only interested in companies trading for 3 years or more
+            if (df.shape[0] == 4 ):  # only interested in companies trading for 3 years or more
                 if (
                     df.iloc[3]["close"] > df.iloc[2]["close"]
                     and df.iloc[2]["close"] > df.iloc[1]["close"]
                     and df.iloc[1]["close"] > df.iloc[0]["close"]
                 ):
                     df["ticker"] = ticker.tickerStrpName
-                    tData,dd=dih.getTickerDataTest(ticker)
+                    tData,dd=self.efi.getTickerData(ticker,marketE)
 
                     dfNew.loc[-1] = [
                         ticker.tickerStrpName,
                         self.get_company_name(ticker,marketE),
-                        df.iloc[0]["close"],
-                        df.iloc[1]["close"],
-                        df.iloc[2]["close"],
-                        df.iloc[3]["close"],
-                        dd["sector"],
-                        dd["gross profits"],
-                        dd["profit margins"],
-                        dd["total cash"],
-                        dd["total debt"],
-                        dd["forward EPS"],
-                        dd["book value"],
-                        dd["forward PE"],
+                        round(df.iloc[0]["close"],2),
+                        round(df.iloc[1]["close"],2),
+                        round(df.iloc[2]["close"],2),
+                        round(df.iloc[3]["close"],2),
+                        #html.Td(html.A(dd['yahoo'], target='_blank',href=ticker.tickerStrpName))
+                        dd['yahoo']
+                        # dd["sector"],
+                        # dd["gross profits"],
+                        # dd["profit margins"],
+                        # dd["total cash"],
+                        # dd["total debt"],
+                        # dd["forward EPS"],
+                        # dd["book value"],
+                        # round(dd["forward PE"],2),
                     ]  # adding a row
                     dfNew.index = dfNew.index + 1  # shifting index
                     dfNew = dfNew.sort_index()  # sorting by index
                     df['id'] = df['ticker']
                     df.set_index('id', inplace=True, drop=False)
+            else:
+                print("You might need to do a market update for "+ticker.tickerStrpName)
+                #print("DROP TABLE "+ticker.sqlTickerTable+";")
 
         print(dfNew)
         return dfNew, dates
@@ -159,6 +166,7 @@ class StockAnalysisHelper(DataBaseHelper):
                     {"if": {"column_id": dates[1]}, "width": "6%"},
                     {"if": {"column_id": dates[2]}, "width": "6%"},
                     {"if": {"column_id": dates[3]}, "width": "6%"},
+                    {"if": {"column_id": 'yahoo'}, "width": "60%"},
                     {"if": {"column_id": "ticker"}, "width": "6%"},
                     {"if": {"column_id": "company"}, "width": "10%"},
                     {"if": {"column_id": "gross profit"}, "width": "6%"},
@@ -188,6 +196,8 @@ class StockAnalysisHelper(DataBaseHelper):
                 row_selectable="single",
                 # row_deletable=False,
                 selected_rows=[],
+                column_selectable="single",
+                selected_columns=[],
                 # page_action="native",
                 # page_current=0,
                 # page_size=10,
@@ -199,9 +209,22 @@ class StockAnalysisHelper(DataBaseHelper):
                 rule="display: inline; white-space: inherit; overflow: inherit; text-overflow: inherit;",
             )
         )
+        
+   
+    
+    
+        
+        
+    
+    
+
+        
 
 
 if __name__ == "__main__":
     di = StockAnalysisHelper()
-    dd = di.topShares(markets_enum.ftse250)
-    print(dd)
+    #dd = di.topShares(markets_enum.ftse250)
+    #print(dd)
+ 
+
+# %%

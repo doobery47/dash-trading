@@ -115,7 +115,7 @@ def build_market_data(n_intervals: int,marketVal):
             dfStatus=pd.DataFrame(columns=["Ticker", "Status"])
             for ticker in ticker_list:
                 try:
-                    status=di.updateHistoryDataForTicker(ticker)
+                    status=di.updateHistoryDataForTicker(ticker,marketValE)
                 except Exception as e:
                     data.append([ticker.ticker, repr(e)])                    
             suh=StockUpdateHelper()

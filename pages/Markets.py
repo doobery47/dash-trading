@@ -9,6 +9,7 @@ from dash.exceptions import PreventUpdate
 import logging
 from UIHelper import UIHelper
 import pageNames
+from ExtFinanceInterface import ExtFinanceInterface
 
 dash.register_page(__name__, order=pageNames.pn['markets'])
 
@@ -66,24 +67,28 @@ layout = html.Div(
             dbc.Col(
                 [
                     html.Div(id='dynamic-comp-gr')                    
-                ], width=4
+                ], width=8
             ),
             dbc.Col(
-            [
+                [
                     html.Div(id={
                     'type': 'dynamic-tab',
                     'index': 0
                 })                    
                 ], width=4
             ),
+ 
+        ]),
+        dbc.Row([ 
             dbc.Col(
             [
                     html.Div(id={
                     'type': 'dynamic-rss',
                     'index': 0
                 })                    
-                ], width=4
-            )
+                ], width=12
+            )                
+            
         ])
 
     ])
@@ -132,25 +137,27 @@ def update_output(date_value):
     Input(component_id={'type': 'dynamic-comp-lst', 'index': MATCH}, component_property='value'), 
     prevent_initial_call=True
 )
-def buildCompData(marketVal, chartVal, dateVal, ticker):
-    if ticker is None:
+def buildCompData(marketVal, chartVal, dateVal, tickerStr):
+    efi=ExtFinanceInterface()
+    if tickerStr is None:
         # PreventUpdate prevents ALL outputs updating
         raise dash.exceptions.PreventUpdate
-    if(ticker is not None):
+    if(tickerStr is not None):
         currency=None
         marketE=markets_enum[marketVal.lower()]
-        symbol = dih.get_compound_ticker_name(ticker, marketE)
+        symbol = dih.getTicker(tickerStr, marketE)
         if(marketE == markets_enum.ftse100 or marketE == markets_enum.ftse250):
             currency="£"
         else:
             currency="$"
-        compName=dih.get_company_name(symbol, marketE)+"("+ticker+")"
+        compName=dih.get_company_name(symbol, marketE)+"("+tickerStr+")"
         data = dih.get_historical_data(symbol, dateVal)
         gh = GraphHelper()
-        gr=gh.getGraph(data,compName,currency,chartVal)
+        ticker=dih.getTicker(tickerStr,marketE)
+        gr=gh.getGraph(data,compName,ticker,marketE,currency,chartVal)
         gr.update_layout(margin=dict(t=50, b=5, l=2, r=2))
                
-        tData,dd=dih.getTickerData(symbol)
+        tData,dd=efi.getTickerDataTest(ticker, marketE)
         tb=gh.buildTable(tData)
         ht=html.Div(tb)
         

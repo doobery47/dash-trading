@@ -2,7 +2,7 @@ from marketsenum import markets_enum
 from sectorenum import sector_enum
 import pandas as pd
 import pandas_datareader as pdr
-from DataBaseHelper import DataBaseHelper
+from BaseHelper import BaseHelper
 from datetime import date, datetime,timedelta
 import yfinance as yf
 from industries import ind,sector
@@ -16,16 +16,16 @@ import holidays
 import sys
 
 
-class DatabaseValidation(DataBaseHelper):
+class DatabaseValidation(BaseHelper):
     
     def __init__(self):
-        DataBaseHelper.__init__(self)
+        BaseHelper.__init__(self)
         
     def checkDates(self, marketE):
         weekdaysLst=[]
         tickers = self.get_stocks_list(marketE)
         for ticker in tickers:
-            df = pd.read_sql_query("SELECT date from "+ticker.sqlTickerTableStr, DataBaseHelper.conn)
+            df = pd.read_sql_query("SELECT date from "+ticker.sqlTickerTableStr, BaseHelper.conn)
             start=df.loc[df.index[0], 'date']
             # get the first and last dates
             a=df.head(1)

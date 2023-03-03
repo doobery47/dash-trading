@@ -134,11 +134,13 @@ def buildCompData(marketVal, chartType, bperVal, days, compVar):
         # PreventUpdate prevents ALL outputs updating
         raise dash.exceptions.PreventUpdate
     if(compVar is not None):
-        df = ca.breakout(compVar, days)
+        marketE=markets_enum[marketVal.lower()]
+        ticker=dih.getTicker(compVar,marketE)
+        compName=dih.get_company_name(ticker, marketE)+"("+ticker.tickerStrpName+")"
+        df = ca.breakout(ticker, days)
         gh = GraphHelper()
-        gr=gh.getGraph(df,compVar,"£", chartType)
-        gr.update_layout(margin=dict(t=100, b=5, l=2, r=2),width=1200, height=500)
-                
+        gr=gh.getGraph(df,compName,ticker,marketE,"£", chartType)
+        gr.update_layout(margin=dict(t=100, b=5, l=2, r=2),width=1200, height=500)               
         return gr
     else:
         raise PreventUpdate

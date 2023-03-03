@@ -14,7 +14,7 @@ market data: https://www.marketwatch.com/investing/index/mcx/download-data?count
 downloaddatapartial?startDate=08/03/2022 00:00:00&endDate=09/02/2022 23:59:59&dateRange=D30&frequency=P1D&CsvDownload=true&DownloadPartial=false&NewDates=false"
 
 TODO
-1. Get news and info on indivisual stocks
+
 3. get info and positions on invidual sectors.
     get current positions from https://www.lse.co.uk/share-prices/sectors/
     would need to scrape this data. 
@@ -25,8 +25,6 @@ TODO
 4. Could multithread some of the pages ie stock updates.
 5. Value investing. Add a chart that compairs all the stock. Make this a line chart.
     Good source of info for combine is https://www.youtube.com/watch?v=NNu1DjWcYeY 
-6. Home - double up graphs.
-7. Home - "index displayed rather than "Date"
 11. Portfolio - Add option to make it either current or old
 12. Portfolio - create current with current prices.
 13. Portfolio - Add share prices as well.
@@ -38,10 +36,6 @@ TODO
     https://community.plotly.com/t/multiple-callbacks-for-an-output/51247 to resolve this.
 
 improvements for dash version.
-1. Home.
-    Update the graph. Looks a bit bland. Take a version of candlestick version
-    remove the current value and put it somewhere else.
-    Make the graphs a little smaller and move the current vlue to take up the space
 2. Portfolio
     Equities/Historic/Colin has an error
 3. Candlestick analysis. THis now works to a fashion. We run the candlestick patten against the 
@@ -50,6 +44,67 @@ improvements for dash version.
     dislpay the table of data and intract with the graph. Or display another line on the graph with the 
     markers (dates) imbeded in the line.
     We need to have another look at the graph. shold include one running avarage and one subplot.
+
+
+Stratagy
+
+What has an impact on the share price?
+1. The fed and the BOE - mainly the interest rates. 
+    - How and what are the impacts.
+    - how can quantify this
+2. Change in the ftse/nasdaq/dow prices.
+    - as the price of a share has is an integral impact (small or large) in the movemnt of the market value
+      then there is a direct correlation between the share price and market price. 
+      There is one one the YouTube videos describe this.
+3. 
+
+NOTES on looking for company investment indicators.
+- Warron buffett
+    - All stocks are bits of companies and that his how you should look at a stock
+    - VALUE THE BUSINESS TO DETERMINE WHAT IT IS WORTH.
+        How do you value an business and how do you corralate this with the market price????
+    - Margen of safety
+    - Observations you look for in a business.
+        -Enduring compedative advantage
+            -A company shoud have a moat around itself. Could be a patent, location etc. Need to protect its
+            market against compeditors. 
+        - a company that is so good it can be run by an idiot. But a company should be run
+          honoust and trustworthy people
+        - A price that is fair
+        - when picking a company look a lot of factors discard companies and get rid of those.
+
+NOTES from Peter Lynch
+    - Put stokes into categories. This helps you decide what questions to ask about a company
+    - If a company is a slow grower and you have made enough profit then it maybe time to sell.
+    - Companies can be determined as fast grower, slow grower, cyclical, asset plays, turnarounds
+    - slow to moderate grower will have a earnings growth of 3% to 15% a year
+    - signs *** steady earmings growth
+      *** rising dividends
+      cyclical
+      *** wait for things to get better before investing.
+      *** pick a stromg company, survive when the cycle goes down, good cash flow and low debt
+      Turnarounds - batterened, haited, forgotted about
+
+    - Earnigs and net income. If they are increasing then the company is doing someting right. 
+    --Warron Buffet looking for.
+    -- In the income statement
+        - Gross margin (https://www.investopedia.com/terms/g/grossmargin.asp) Companies use gross margin, gross profit, and gross profit margin to measure how their production costs relate to their revenues. The higher the number-the more comoany sells then the greater the profitability. Look for compnies that exceed 35% over a number of years.
+        - Net margin. 20% and above
+    -- Looking for the balance sheet
+        - Retained earnings. This is a reflection of reinvestment. Return on equity (total equity compaired to net income) can be used to measure how well retained earning are being used. 
+        - Long term debt to should be low or should be going down over a number of years.
+    -- Cash flow statement
+        - Capital expenditure (capital expenditure/Net income). This should be low as possible. Less than 25% is very good and below 50% is 
+        acceptable. However you have to take into consideraton one of amounts for large expansions
+    -- When to sell
+        - sell to reinvest in another opertunity.
+        - Company is loosing its competative advantage (ie newspapers)
+        - During a crazy bull market. if the PE ratio is above 40
+
+
+Notes to self.
+    - what the sector that the company is in. This can have an impact on the dynaics and grouth. Also use the
+      other companies in sector to compare performs ie PE ratio
 
 
 READING.

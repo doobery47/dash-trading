@@ -6,7 +6,9 @@ from sqlalchemy import create_engine
 import sqlalchemy
 from sqlalchemy.orm import Session
 import config
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Date, Float, BigInteger
+from sqlalchemy import BigInteger, Column, Date, Float, MetaData, Table, create_engine
+from datetime import datetime, timedelta
+import holidays
 import logging
 
 
@@ -30,7 +32,7 @@ class TickerTypeVals():
     sqlTickerTable=""
 
 
-class DataBaseHelper:
+class BaseHelper:
     conn = None
     engine = None
     session = None
@@ -39,12 +41,12 @@ class DataBaseHelper:
         user = config.DB_USER
         pwd = config.DB_PASS
         db = config.DB_NAME
-        if (DataBaseHelper.engine == None):
-            DataBaseHelper.engine = create_engine(
+        if (BaseHelper.engine == None):
+            BaseHelper.engine = create_engine(
                 'postgresql+psycopg2://'+user+':'+pwd+'@localhost:5432/'+db)
-            DataBaseHelper.conn = DataBaseHelper.engine.connect()
-            DataBaseHelper.session = Session(
-                DataBaseHelper.engine, future=True)
+            BaseHelper.conn = BaseHelper.engine.connect()
+            BaseHelper.session = Session(
+                BaseHelper.engine, future=True)
 
     def getMarketEnum(self, mn):
         if (mn == "FTSE 100"):
@@ -89,10 +91,21 @@ class DataBaseHelper:
     def get_company_name(self, ticker, marketsE):
 
         df = pd.read_sql_query("SELECT * FROM public.{} WHERE epic={};".format(marketsE.name,
-                                                                                 ticker.sqlMarketTableStr), DataBaseHelper.conn)
+                                                                                 ticker.sqlMarketTableStr), BaseHelper.conn)
         try:
             f = df['name']
             dd = df.iloc[0]['name']
+            return dd
+        except Exception as e:
+            logging.getLogger().error(str(e))
+            
+    def get_sector_name(self, ticker, marketsE):
+
+        df = pd.read_sql_query("SELECT * FROM public.{} WHERE epic={};".format(marketsE.name,
+                                                                                 ticker.sqlMarketTableStr), BaseHelper.conn)
+        try:
+            f = df['sector']
+            dd = df.iloc[0]['sector']
             return dd
         except Exception as e:
             logging.getLogger().error(str(e))
@@ -122,30 +135,60 @@ class DataBaseHelper:
             Column('volume', BigInteger),
         )
         meta.create_all(self.engine)
+        
+    def dateMove(self, dat, marketE):
+        if dat.weekday() > 4:
+            dat = dat - timedelta(days=dat.weekday() - 4)  # move sat or sunday to firday
+            dat=self.dateMove(dat,marketE)
+        else:
+            if marketE == markets_enum.ftse100 or marketE == markets_enum.ftse250:
+                this_holiday = holidays.UK()
+            else:
+                this_holiday = holidays.US()
 
-    def get_compound_ticker_name(self, ticker, marketE):
+            if dat in this_holiday:
+                dat = dat - timedelta(days=1)
+                dat=self.dateMove(dat, marketE)
+        return dat
+        
+    def holidayDateAdjust(self, dat, marketE):
+            
+        if dat.weekday() > 4:
+            dat = dat - timedelta(
+                days=dat.weekday() - 4
+            )  # move sat or sunday to firday
+        else:
+            if marketE == markets_enum.ftse100 or marketE == markets_enum.ftse250:
+                this_holiday = holidays.UK()
+            else:
+                this_holiday = holidays.US()
+
+            if dat in this_holiday:
+                dat=self.dateMove(dat, marketE)
+        return dat.date()
+
+    def getTicker(self, tickerStr, marketE):
         tickerYahooExt = ""  # default value
         if (marketE == markets_enum.ftse100):
             tickerYahooExt = ".L"
         elif (marketE == markets_enum.ftse250):
             tickerYahooExt = ".L"
-        tickerStrpName = re.sub("[.]", "", ticker)
-        sqlTickerTableStr = '"'+self.getTickerSQLName(ticker)+'"' # with quotes
-        sqlTickerTable = self.getTickerSQLName(ticker) # without quotes
-        sqlMarketTableStr = "'"+ticker.upper()+"'" # This is used to get the ticker value out of the market tables. They are all uppercase
+        tickerStrpName = re.sub("[.]", "", tickerStr)
+        sqlTickerTableStr = '"'+self.getTickerSQLName(tickerStr, marketE)+'"' # with quotes
+        sqlTickerTable = self.getTickerSQLName(tickerStr,marketE) # without quotes
+        sqlMarketTableStr = "'"+tickerStr.upper()+"'" # This is used to get the ticker value out of the market tables. They are all uppercase
         tickerYahoo = tickerStrpName+tickerYahooExt
 
-        ttv = TickerTypeVals(ticker, sqlMarketTableStr,
-                             sqlTickerTableStr, sqlTickerTable, ticker, tickerYahoo)
-        return ttv
+        return TickerTypeVals(tickerStr, sqlMarketTableStr,
+                             sqlTickerTableStr, sqlTickerTable, tickerStr, tickerYahoo)
 
     # the return list consist of tuples containing a the sqlformat name, the true name
-    def get_stocks_list(self, stockE):
-        df = self.query_columns_to_dataframe(stockE.name, ['epic'])
+    def get_stocks_list(self, marketE):
+        df = self.query_columns_to_dataframe(marketE.name, ['epic'])
         tickers = df['epic']
         new_ticker_lst = []
         for ticker in tickers:
-            new_ticker_lst.append(self.get_compound_ticker_name(ticker, stockE))
+            new_ticker_lst.append(self.getTicker(ticker, marketE))
 
         return new_ticker_lst
     
@@ -164,21 +207,48 @@ class DataBaseHelper:
         for i in range(len(columns)):
             query = query + columns[i] + ', '
         query = query[:-2] + ' from "' + table+'"'
-        df = pd.read_sql_query(query, DataBaseHelper.conn)
+        df = pd.read_sql_query(query, BaseHelper.conn)
         return df
 
-    # def mod_table_digit_name(self, ticker):
+    # def mod_table_digit_name(self, ticker, marketE):
     #     if (ticker[0].isdigit()):
-    #         return "zz_"+ticker
+    #         return "zz_"+ticker+"-l"
         
     #     else:
-    #         return ticker.lower()
+    #         return ticker.lower()+"_l"
 
-    def getTickerSQLName(self, ticker):
-        if (ticker[0].isdigit()):
-            return "zz_"+ticker.lower()
-        elif(ticker.endswith('.')):
-            return ticker.replace(".", "_yy").lower()
-        else:
-            return ticker.lower()
+    def getTickerSQLName(self, ticker, marketE):
+        tickerR=ticker
+        if (tickerR[0].isdigit()):
+            tickerR= "zz_"+tickerR
+        if(ticker.endswith('.')):
+            tickerR= tickerR.replace(".", "")
+        if marketE == markets_enum.ftse100 or marketE == markets_enum.ftse250:
+            tickerR= tickerR+"_l"
+
+        return tickerR.lower()
+    
+if __name__ == "__main__":
+    dbh = BaseHelper()
+    
+    ftse100E=markets_enum.ftse100
+    sunday2020=datetime(2020, 1, 12)
+    monday2020=datetime(2020, 4, 13)
+    tuesday2020=datetime(2020, 1, 14)
+    wednesday2020=datetime(2020, 1, 15)
+    thursday2020=datetime(2020, 1, 16)
+    friday2020=datetime(2020, 1, 17)
+    saturday2020=datetime(2020, 1, 18)
+    
+    print(dbh.holidayDateAdjust(sunday2020, ftse100E))
+    print(dbh.holidayDateAdjust(monday2020, ftse100E))
+    print(dbh.holidayDateAdjust(tuesday2020, ftse100E))
+    print(dbh.holidayDateAdjust(wednesday2020, ftse100E))
+    print(dbh.holidayDateAdjust(thursday2020, ftse100E))
+    print(dbh.holidayDateAdjust(friday2020, ftse100E))
+    print(dbh.holidayDateAdjust(saturday2020, ftse100E))
+    
+    
+    
+    
         

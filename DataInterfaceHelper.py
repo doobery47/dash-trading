@@ -2,9 +2,9 @@ from marketsenum import markets_enum
 from sectorenum import sector_enum
 import pandas as pd
 import pandas_datareader as pdr
-from DataBaseHelper import DataBaseHelper
-from datetime import date, datetime, timedelta
+from BaseHelper import BaseHelper
 from dateutil.relativedelta import relativedelta
+from datetime import date, datetime, timedelta
 import yfinance as yf
 from yahoo_fin import stock_info as si
 from industries import ind, sector
@@ -16,7 +16,7 @@ import feedparser
 from dash import Dash, html, dcc, Output, Input, callback, State, MATCH
 
 
-class dataInterfaceHelper(DataBaseHelper):
+class dataInterfaceHelper(BaseHelper):
     FTSE100 = "https://www.marketwatch.com/investing/index/ukx/downloaddatapartial?startdate={}&enddate={}&daterange=d30&frequency=p1d&csvdownload=true&downloadpartial=false&newdates=false&countrycode=uk"
     FTSE250 = "https://www.marketwatch.com/investing/index/mcx/downloaddatapartial?startdate={}&enddate={}&daterange=d30&frequency=p1d&csvdownload=true&downloadpartial=false&newdates=false&countrycode=uk"
     DowJones = "https://www.marketwatch.com/investing/index/djia/downloaddatapartial?startdate={}&enddate={}&daterange=d30&frequency=p1d&csvdownload=true&downloadpartial=false&newdates=false"
@@ -32,104 +32,115 @@ class dataInterfaceHelper(DataBaseHelper):
     }
 
     def __init__(self):
-        DataBaseHelper.__init__(self)
+        BaseHelper.__init__(self)
 
-    def get_marketData(self, marketsE, period="year to date", sec=sector_enum.none):
-        tableName = marketsE.name + "_historic_values"
-        if period == "year to date":
-            startDate = (datetime.now() + timedelta(days=-364)).date()
-            if sec != sector_enum.none and marketsE == markets_enum.nasdaq:
-                df = pd.read_sql_query(
-                    "SELECT * from {} WHERE sector='{}' and \"date\" > '{}'::date".format(
-                        tableName, self.getSectorStringVal(sec), startDate
-                    ),
-                    DataBaseHelper.conn,
-                )
-            else:
-                df = pd.read_sql_query(
-                    "SELECT * from {} WHERE \"date\" > '{}'::date".format(
-                        tableName, startDate
-                    ),
-                    DataBaseHelper.conn,
-                )
+    def get_marketData(self, marketE, period=1, sec=sector_enum.none):
+        tableName = marketE.name + "_historic_values"
+        startDate=self.holidayDateAdjust(datetime.now() - relativedelta(years=period), marketE)
+        #startDate = (datetime.now() + timedelta(days=((period*365)-1)*-1)).date()
+        if sec != sector_enum.none and marketE == markets_enum.nasdaq:
+            df = pd.read_sql_query(
+                "SELECT * from {} WHERE sector='{}' and \"date\" >= '{}' ORDER BY date DESC;".format(
+                    tableName, self.getSectorStringVal(sec), str(startDate)
+                ),
+                BaseHelper.conn,
+            )
         else:
-            if sec != sector_enum.none and marketsE == markets_enum.nasdaq:
-                df = pd.read_sql_query(
-                    "SELECT * from {} WHERE sector='{}'".format(
-                        tableName, self.getSectorStringVal(sec)
-                    ),
-                    DataBaseHelper.conn,
-                )
-            else:
-                df = pd.read_sql_query(
-                    "SELECT * FROM {} ;".format(tableName), DataBaseHelper.conn
-                )
-
+            df = pd.read_sql_query(
+                "SELECT * from {} WHERE \"date\" >= '{}' ORDER BY date DESC;".format(
+                    tableName, str(startDate)
+                ),
+                BaseHelper.conn,
+            )
+            
+        df.drop_duplicates(subset="date", keep='first', inplace=True)
         for i in df.columns:
             if i == "date":
                 continue
             df[i] = df[i].astype(float)
 
         df.index = pd.to_datetime(df.date)
-        df = df.sort_index()
+        df = df.sort_index()        
         return df
 
     def get_ticker_data(self, ticker):
         # ticker=self.mod_table_digit_name(ticker)
         # ticker="\""+ticker+"\""
         df = pd.read_sql_query(
-            "SELECT * FROM public." + ticker.sqlTickerTableStr, DataBaseHelper.conn
+            "SELECT * FROM public." + ticker.sqlTickerTableStr, BaseHelper.conn
         )
         return df
 
-    def get_historical_data(self, symbol, start_date=None, live=False):
+    def get_historical_data(self, ticker, start_date=None, live=False):
         df = None
         if live:
-            tickerData = yf.Ticker(symbol.tickerYahoo)
-            delta = datetime.now() - datetime.strptime(start_date, "%Y-%m-%d")
-            df = tickerData.history(period=str(delta.days) + "d")
-            df = df.drop("Dividends", axis=1)
-            df = df.drop("Stock Splits", axis=1)
-            # df = pdr.get_data_yahoo(symbol.tickerYahoo, start=start_date, end=datetime.now())
-            df.rename(
-                columns={
-                    "Open": "open",
-                    "Close": "close",
-                    "High": "high",
-                    "Low": "low",
-                    "Volume": "volume",
-                    "Date": "date",
-                },
-                inplace=True,
-            )
-            for i in df.columns:
-                df[i] = df[i].astype(float)
-        else:
             try:
-                df = pd.read_sql_query(
-                    "SELECT * FROM " + symbol.sqlTickerTableStr, DataBaseHelper.conn
+                if(start_date==None):
+                    start_date = datetime.strptime("2017-07-30", "%Y-%m-%d").date()
+                tickerData = yf.Ticker(ticker.tickerYahoo)
+                delta = datetime.now().date() - start_date
+                df = tickerData.history(period=str(delta.days) + "d")
+                df = df.drop("Dividends", axis=1)
+                df = df.drop("Stock Splits", axis=1)
+                # df = pdr.get_data_yahoo(ticker.tickerYahoo, start=start_date, end=datetime.now())
+                df.rename(
+                    columns={
+                        "Open": "open",
+                        "Close": "close",
+                        "High": "high",
+                        "Low": "low",
+                        "Volume": "volume",
+                        "Date": "date",
+                    },
+                    inplace=True,
                 )
                 for i in df.columns:
                     if i == "date":
-                        continue
+                            continue
                     df[i] = df[i].astype(float)
                 df.index = pd.to_datetime(df.date)
                 # start_date = None
                 if start_date:
                     df = df[df.index >= start_date]
+                return df
             except Exception as e:
-                print(symbol.sqlTickerTableStr + " :" + str(e))
+                print(ticker.sqlTickerTableStr + " :" + str(e))
+                logging.getLogger().error(ticker.sqlTickerTableStr + " :" + str(e))
+        else:
+            try:
+                df = pd.read_sql_query(
+                    "SELECT * FROM " + ticker.sqlTickerTableStr, BaseHelper.conn
+                )
+                df.drop_duplicates(subset="date", keep='first', inplace=True)
+                for i in df.columns:
+                    if i == "date":
+                        continue
+                    df[i] = df[i].astype(float)
+                df.index = pd.to_datetime(df.date)
+                #df["date"] = pd.to_datetime(df["date"]).date
+                # start_date = None
+                print(df.head())
+                print(df.tail())
+                if start_date:
+                    df = df[df.index >= start_date]
+                return df
+            except Exception as e:
+                print(ticker.sqlTickerTableStr + " :" + str(e))
+                logging.getLogger().error(ticker.sqlTickerTableStr + " :" + str(e))
 
-        try:
-            df.index = pd.to_datetime(df.index)
-            if start_date:
-                df = df[df.index >= start_date]
-            return df
-        except Exception as e:
-            print(symbol.sqlTickerTableStr + " :" + str(e))
+        # try:
+        #     df.index = pd.to_datetime(df.index).date
+        #     print(df.index)
 
-    def UpdateMarketData(self, marketsE, sec=sector_enum.none):
-        df = self.get_marketData(marketsE, sec)
+        #     if start_date:
+        #         df = df[df.index >= start_date]
+        #     df.to_csv("get_historical_data.csv")
+        #     return df
+        # except Exception as e:
+        #     print(ticker.sqlTickerTableStr + " :" + str(e))
+
+    def UpdateMarketData(self, marketE, sec=sector_enum.none):
+        df = self.get_marketData(marketE, 1,sec)
         df["date"] = pd.to_datetime(df["date"])
         if df.size == 0:  # We have an empty table
             startDate = datetime.now() + timedelta(days=-364)
@@ -140,14 +151,14 @@ class dataInterfaceHelper(DataBaseHelper):
             if startDate >= date.today():  # - timedelta(days=1)):
                 print(
                     "Wont process "
-                    + marketsE.name
+                    + marketE.name
                     + " as end date is equal to or greater than today"
                 )
                 return
 
         startDateStr = startDate.strftime("%m/%d/%Y")
         endDateStr = datetime.now().strftime("%m/%d/%Y")
-        marketStr = self.marketDict[marketsE.name]
+        marketStr = self.marketDict[marketE.name]
         market = marketStr.format(startDateStr, endDateStr)
 
         df = pd.read_csv(market)
@@ -168,25 +179,24 @@ class dataInterfaceHelper(DataBaseHelper):
         df["low"] = df["low"].str.replace("\,", "", regex=True)
         df["date"] = pd.to_datetime(df["date"])
         df.to_sql(
-            marketsE.name + "_historic_values",
-            con=DataBaseHelper.engine,
+            marketE.name + "_historic_values",
+            con=BaseHelper.engine,
             if_exists="append",
             index=False,
         )
-        DataBaseHelper.session.commit()
+        BaseHelper.session.commit()
 
-    def updateHistoryDataForTicker(self, tickerNameContainer):
+    def updateHistoryDataForTicker(self, tickerNameContainer,marketValE):
         # get last record and date form table
 
         startDate = datetime.strptime("2017-07-30", "%Y-%m-%d").date()
         try:
-
             if self.tableExists(tickerNameContainer.sqlTickerTableStr):
                 df_db = pd.read_sql_query(
                     "SELECT * FROM {} ORDER BY date DESC LIMIT 1;".format(
                         tickerNameContainer.sqlTickerTableStr
                     ),
-                    DataBaseHelper.conn,
+                    BaseHelper.conn,
                 )
                 startDate = (
                     pd.to_datetime(df_db["date"][0]) + pd.DateOffset(days=1)
@@ -201,7 +211,9 @@ class dataInterfaceHelper(DataBaseHelper):
             else:  # no table found so we will create one and set up some default data
                 self.createTable(tickerNameContainer.sqlTickerTableStr)
         except Exception as e:  ## report the problem and remove entr from tickerr table
-            logging.getLogger().error(str(e))
+            #delStr="DELETE FROM "+marketValE+" WHERE epic='"+tickerNameContainer.sqlTickerTableStr+"'"
+            logging.getLogger().error("DELETE FROM "+marketValE.name+" WHERE epic='"+tickerNameContainer.sqlTickerTableStr.upper()+"';")
+            #logging.getLogger().error(str(e))
             raise e
 
         try:
@@ -211,16 +223,18 @@ class dataInterfaceHelper(DataBaseHelper):
                 end=date.today(),
                 group_by="ticker",
             )
+            print(df)
             if "Dividends" in df.columns:
                 df = df.drop("Dividends", axis=1)
             if "Stock Splits" in df.columns:
                 df = df.drop("Stock Splits", axis=1)
             df.to_csv("test.csv")
             data = pd.read_csv("test.csv")
-            print(data)
             print("processed: " + tickerNameContainer.tickerStrpName)
         except Exception as e:
             logging.getLogger().error(str(e))
+            logging.getLogger().error("DELETE FROM "+marketValE.name+" WHERE epic='"+tickerNameContainer.sqlTickerTableStr.upper()+"';")
+ 
             raise e
 
         data.rename(
@@ -235,230 +249,41 @@ class dataInterfaceHelper(DataBaseHelper):
             inplace=True,
         )
         data.date = pd.to_datetime(data.date)
+        print(data)
         # need to set table name to lower as panda puts name in double quotes as we need a lower case name
         data.to_sql(
             tickerNameContainer.sqlTickerTable,
-            con=DataBaseHelper.conn,
+            con=BaseHelper.conn,
             schema="public",
             if_exists="append",
             index=False,
         )
-        DataBaseHelper.session.commit()
+        BaseHelper.session.commit()
         return "Complete"
-
-    def getTickerDataTest(self, ttv):
-        # pandas display options
-        pd.set_option("display.max_colwidth", -1)
-
-        sector = "financial"
-        longBusinessSummary = "s simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."
-        grossProfits = 2938000000
-        previousClose=23.44
-        currentPrice=22.22
-        increase=0.23
-        profitMargins = 0.13743
-        priceToBook=7.7
-        totalCash = 970000000
-        totalDebt = 4012999936
-        forwardEps = 0.18
-        bookValue = 0.909
-        forwardPE = 7.5444446
-        longName = ttv.ticker + " bla bla bla"
-        companyURL = "https://www.bbc.co.uk/news"
-        website = f'<a target="_blank" href="{companyURL}">Company URL</a>'
-        if grossProfits > 1000000:
-            grossProfits = str(round(grossProfits / 1000000, 2)) + "m"
-            totalCash = str(round(totalCash / 1000000, 2)) + "m"
-            totalDebt = str(round(totalDebt / 1000000, 2)) + "m"
-        
-        data = [
-            ["sector", sector],
-            ["current price", currentPrice],
-            ["previous close", previousClose],
-            ["increase", str(increase) + "%"],
-            ["gross profits", grossProfits],
-            ["profit margins", profitMargins],
-            ["total cash", totalCash],
-            ["total debt", totalDebt],
-            ["forward EPS", forwardEps],
-            ["book value", bookValue],
-            ["price to book", priceToBook],
-            ["forward PE", forwardPE],
-            ["website", website],
-        ]
-        
-        retList={"sector": sector,
-            "current price": currentPrice,
-            "previous close": previousClose,
-            "increase": str(increase) + "%",
-            "gross profits": grossProfits,
-            "profit margins": profitMargins,
-            "total cash": totalCash,
-            "total debt": totalDebt,
-            "forward EPS": forwardEps,
-            "book value": bookValue,
-            "price to book": priceToBook,
-            "forward PE": forwardPE,
-            "website": website}
-
-        # Create the pandas DataFrame
-        df = pd.DataFrame(data, columns=["Name", "Description"])
-        #df = df.to_html(escape=False)
-        return df,retList
-
-    def getTickerData(self, ticker, tickerData=None):
-        pd.set_option("display.max_colwidth", -1)
-        if tickerData == None:
-            stock = yf.Ticker(ticker.tickerYahoo)
-        addInfo=stock.fast_info
-        dict = stock.info
-        sector = dict["sector"]
-        grossProfits = dict["grossProfits"] 
-        profitMargins = dict["profitMargins"]
-        totalCash = dict["totalCash"]
-        totalDebt = dict["totalDebt"]
-        forwardEps = dict["forwardEps"]
-        bookValue = dict["bookValue"]
-        forwardPE = dict["forwardPE"]
-        website = dict["website"]
-        currentPrice = addInfo["last_price"]
-        previousClose = addInfo["previous_close"]
-        priceToBook = dict["priceToBook"]
-        # website = f'<a target="_blank" href="{website}">Company URL</a>'
-        increase = round(
-            100 * (float(currentPrice) - float(previousClose)) / float(previousClose), 3
-        )
-
-        try:
-            if grossProfits is not None and grossProfits > 1000000:
-                grossProfits = str(round(grossProfits / 1000000, 2)) + "m"
-            if totalCash is not None and totalCash > 1000000:
-                totalCash = str(round(totalCash / 1000000, 2)) + "m"
-            if totalDebt is not None and totalDebt >1000000:
-                totalDebt = str(round(totalDebt / 1000000, 2)) + "m"
-        except Exception as e:
-            print (e)
-
-        data = [
-            ["sector", sector],
-            ["current price", currentPrice],
-            ["previous close", previousClose],
-            ["increase", str(increase) + "%"],
-            ["gross profits", grossProfits],
-            ["profit margins", profitMargins],
-            ["total cash", totalCash],
-            ["total debt", totalDebt],
-            ["forward EPS", forwardEps],
-            ["book value", bookValue],
-            ["price to book", priceToBook],
-            ["forward PE", forwardPE],
-            ["website", website],
-        ]
-        
-        retList={"sector": sector,
-            "current price": currentPrice,
-            "previous close": previousClose,
-            "increase": str(increase) + "%",
-            "gross profits": grossProfits,
-            "profit margins": profitMargins,
-            "total cash": totalCash,
-            "total debt": totalDebt,
-            "forward EPS": forwardEps,
-            "book value": bookValue,
-            "price to book": priceToBook,
-            "forward PE": forwardPE,
-            "website": website}
-
-        # Create the pandas DataFrame
-        df = pd.DataFrame(data, columns=["Name", "Description"])
-        # df = df.to_html(escape=False)
-        return df,retList
-
-    def deleteDuplicateRows(self, marketE):
-        tickers = self.get_stocks_list(markets_enum.ftse100)
-        for ticker in tickers:
-            dth = datetime(2023, 1, 13).date()
-            dss = datetime(2023, 1, 16).date()
-            DataBaseHelper.conn.execute(
-                "DELETE FROM {} WHERE date = '{}';".format(
-                    ticker.sqlTickerTableStr, dth
-                )
-            )
-            DataBaseHelper.conn.execute(
-                "DELETE FROM {} WHERE date = '{}';".format(
-                    ticker.sqlTickerTableStr, dss
-                )
-            )
-            DataBaseHelper.session.commit()
-
-    # def repeat_clean(self):
-    #     ftseTickers = self.get_stocks_list(markets_enum.ftse100)
-    #     for tickerVals in ftseTickers:
-    #        ticker=tickerVals.sqlMarketTableStr
-    #        DataBaseHelper.conn.execute("DELETE FROM {} WHERE rowid > (SELECT MIN(rowid) FROM {} p2 WHERE {}.date = p2.date);".format(ticker,ticker,ticker))
-    #        DataBaseHelper.session.commit()
-
-    def sqlachemyTst(self):
-        DataBaseHelper.engine.execute(
-            "CREATE TABLE IF NOT EXISTS films (title text, director text, year text)"
-        )
-        DataBaseHelper.engine.execute(
-            "INSERT INTO films (title, director, year) VALUES ('Doctor Strange', 'Scott Derrickson', '2016')"
-        )
-
-        # Read
-        result_set = DataBaseHelper.engine.execute("SELECT * FROM films")
-        for r in result_set:
-            print(r)
-
-        # Update
-        DataBaseHelper.engine.execute(
-            "UPDATE films SET title='Some2016Film' WHERE year='2016'"
-        )
-        # Delete
-        DataBaseHelper.engine.execute("DELETE FROM films WHERE year='2016'")
-
-    def removeDotL(self):
-        df = pd.read_sql_query("SELECT * FROM isa_investments", DataBaseHelper.conn)
-        for rowIndex, row in df.iterrows():
-            dd = row["ticker"]
-            if row["ticker"] != None:
-                newTicker = row["ticker"] + ".L"
-                DataBaseHelper.engine.execute(
-                    "UPDATE isa_investments SET ticker='"
-                    + newTicker
-                    + "' WHERE ticker='"
-                    + row["ticker"]
-                    + "'"
-                )
-                DataBaseHelper.session.commit()
-                
+                 
     def getRssNews(self, ticker, fontSize='14px'):
         if isinstance(ticker, str):
             feed=feedparser.parse("https://feeds.finance.yahoo.com/rss/2.0/headline?s="+ticker+"&region=US&lang=en-US")
         else:
-            feed=feedparser.parse("https://feeds.finance.yahoo.com/rss/2.0/headline?s="+ticker.tickerpYahoo+"&region=US&lang=en-US")
+            feed=feedparser.parse("https://feeds.finance.yahoo.com/rss/2.0/headline?s="+ticker.tickerYahoo+"&region=US&lang=en-US")
         children=[]
         for entry in feed.entries:
-            lnk=html.Div([html.A(entry.summary, href=entry.link, target="_blank",style={"marginBottom": "5px",'font-size': fontSize,})],)
+            lnk=html.Div([html.A(entry.summary, href=entry.link, target="_blank",style={"marginBottom": "5px",'fontSize': fontSize,})],)
             children.append(lnk)        
         return children
-
-    def removequotedTables(self, market):
-        tickers = self.get_stocks_list(market)
-        for ticker in tickers:
-            if sqlalchemy.inspect(self.engine).has_table(ticker.sqlTickerTable):
-                try:
-                    if ticker.tickerStrpName == "III":
-                        continue
-                    DataBaseHelper.engine.execute(
-                        "DROP TABLE " + ticker.sqlTickerTableStr
-                    )
-                    DataBaseHelper.session.commit()
-                    # ticks = pandas.read_sql_query("SELECT * from "+ticker.sqlTickerTableStr, con=DataBaseHelper.conn)
-                    # ticks.to_sql(ticker.tickerStrpName, con=DataBaseHelper.conn, if_exists='append',index=False)
-                except Exception as e:
-                    print(e)
+    
+    def getPreviousDayClose(self, ticker, marketE, lastKnownDate):
+        lastKnownDate=self.holidayDateAdjust(lastKnownDate, marketE)
+        datStr="'"+str(lastKnownDate)+"'"
+        df = pd.read_sql_query('SELECT close FROM ' + ticker.sqlTickerTable+' where "date"='+datStr+';', BaseHelper.conn)
+        if(df.empty):
+            prevClose=0
+        else:
+            prevClose=df['close'][0]
+        return prevClose
+        
+        
+        
                     
     def getMarketTicker(self, marketE):
         if marketE == markets_enum.ftse100:
@@ -493,12 +318,12 @@ class dataInterfaceHelper(DataBaseHelper):
                 "SELECT epic,name,ipo_year,sector,country,industry,last_update from nasdaq WHERE sector='"
                 + i
                 + "'",
-                con=DataBaseHelper.conn,
+                con=BaseHelper.conn,
             )
             ticks.to_sql(
-                "nasdaq_" + i, con=DataBaseHelper.conn, if_exists="append", index=False
+                "nasdaq_" + i, con=BaseHelper.conn, if_exists="append", index=False
             )
-            DataBaseHelper.session.commit()
+            BaseHelper.session.commit()
             # for tick in ticks.iterrows():
             #     print(tick)
             # f.write(ticks.to_string()+" : "+count(ticks)+i+"\n")
@@ -510,7 +335,7 @@ class dataInterfaceHelper(DataBaseHelper):
         for ticker in tickers:
             lTicker = ticker.sqlTickerTableStr.lower()
             try:
-                DataBaseHelper.conn.execute(
+                BaseHelper.conn.execute(
                     'DELETE FROM "'
                     + lTicker
                     + '" WHERE date in(SELECT MAX("date") FROM "'
@@ -556,6 +381,12 @@ if __name__ == "__main__":
     # print(tst.get_stocks_list(ftse_enum.ftse250))
     # print(tst.mod_table_name("gg"))
     # print(date.today())
+    marketE=markets_enum['ftse100']
+    ticker= tst.getTicker("BP.",marketE)
+    dat = datetime(2023, 2, 20,)
+    dat=dat-timedelta(days=1)
+    xx=tst.getPreviousDayClose(ticker,marketE,dat)
+    print(xx)
 
     # tst.repeat_clean()
 

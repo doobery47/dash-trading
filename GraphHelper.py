@@ -7,21 +7,45 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 import datetime
 import numpy as np
+from Calculations import TradingCalculations
+from plotly.subplots import make_subplots
+import pandas as pd
 
 
 class GraphHelper:
     
+    def getScatterPlot(self, ticker,marketE, df):
+        fig = px.scatter(df,x=df['X'], y=df['Y'])
+        fig.add_trace(go.Scatter(x=df['X'], y=df['Y_pred'], line=dict(color='red', width=1),
+                                 name="linear expressoin"))
+        fig.update_layout( 
+            font=dict(
+            family="Courier New, monospace",
+            size=16,
+            color='blue'  
+            ) ,         
+            title=marketE.name+" and "+ticker.tickerStrpName+" scatter plot with slope",
+            yaxis_title=marketE.name,
+            xaxis_title=ticker.tickerStrpName,
+            autosize=False,
+            xaxis_tickangle=45,
+            margin=dict(l=5, r=5, b=5, t=40, pad=5),
+        )
+        return fig
+    
     #https://www.marketwatch.com/investing/index/ukx/downloaddatapartial?startdate=08/03/2022 00:00:00&enddate=09/02/2022 23:59:59&daterange=d30&frequency=p1d&csvdownload=true&downloadpartial=false&newdates=false&countrycode=uk
     
-    def getGraph(self, df, marketName, currency,  graphType='line'):
+    def getGraph(self, df, marketName, ticker, marketE, currency,  graphType='line',simpleLinearRegresion=False):
         # get the last date in the db table. Update the table
         # create the graph and return
         
         df['MA50'] = df['close'].rolling(window=50, min_periods=0).mean()
-        # df['MA200'] = df['close'].rolling(window=200, min_periods=0).mean()
-        # df['MA200'].head(30)
+        df['MA200'] = df['close'].rolling(window=200, min_periods=0).mean()
+        df['MA200'].head(30)
         fig = go.Figure()
         lineColour='blue'
+        
+     
         
         # if(currentValue < startValue):
         #     lineColour="RebeccaPurple"
@@ -38,18 +62,33 @@ class GraphHelper:
         #             'size':18}},
         #             number = {
         #             'font':{
-        #             'size':40}}))  
+        #             'size':40}})) 
+     
+        tc=TradingCalculations()
+            
+        
+        if(ticker==None):
+             label=marketName
+        else:
+            label=ticker.tickerStrpName
         
         if(graphType == 'line'):
-            fig.add_trace(go.Scatter(x=df.index, y=df["open"]))
-            #fig.add_trace(go.Scatter(data_frame=df,x=df.index, y=df["open"]))
-            #fig = px.line(data_frame=df,x=df.index, y=df["open"])
-            
+            fig.add_trace(go.Scatter(x=df.index, y=df["close"], name=label))
+            #fig.add_trace(go.Scatter(x=df.index, y=df.MA50, line=dict(color='orange', width=1),name="MA50"))
+            #fig.add_trace(go.Scatter(x=df.index, y=df.MA200, line=dict(color='green', width=1),name="MA200"))
         else:            
             fig.add_trace(go.Candlestick(x=df.index, open=df["open"], high=df["high"],
-                        low=df["low"], close=df["close"], name="OHLC" ))
+                        low=df["low"], close=df["close"], name=label ))
+        fig.add_trace(go.Scatter(x=df.index, y=df.MA50, line=dict(color='orange', width=1),name="MA50"))
+        fig.add_trace(go.Scatter(x=df.index, y=df.MA200, line=dict(color='green', width=1),name="MA200"))
 
-            fig.update_layout(xaxis_rangeslider_visible=False)
+        fig.update_layout(xaxis_rangeslider_visible=False)
+            
+        if(simpleLinearRegresion is True):
+            Y_pred=tc.simpleLinearRegresion(df,ticker, marketE)
+            Y_pred = pd.Series(Y_pred)
+            fig.add_trace(go.Scatter(x=df.index, y=Y_pred, line=dict(color='red', width=1),name="slope"))
+
             
         fig.update_layout( 
             font=dict(
@@ -57,7 +96,7 @@ class GraphHelper:
             size=16,
             color=lineColour  
             ) ,         
-            title=marketName+' historical price chart',
+            title=marketName,
             yaxis_title='Stock Price (pence per Shares)',
             autosize=False,
             xaxis_tickangle=45,
@@ -136,8 +175,7 @@ class GraphHelper:
         lower_band = rolling_mean - (rolling_std*num_of_std)
         return rolling_mean, upper_band, lower_band
 
-    def buildTable(self, dff, height=500):
-    
+    def buildTable(self, dff, height=500):    
         return html.Div(self.buildDashTable(dff, height=500)
         )
         
@@ -199,6 +237,7 @@ class GraphHelper:
             ]))
 
         fig['layout']['xaxis']['rangeselector'] = rangeselector
+        print(df.close)
         mv_y = self.movingaverage(df.close)
         mv_x = list(df.index)
 

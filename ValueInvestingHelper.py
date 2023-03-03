@@ -1,7 +1,7 @@
 # https://quantpy.com.au/python-for-finance/warren-buffett-value-investing-like-a-quant/
 # https://docs.streamlit.io/knowledge-base/using-streamlit/hide-row-indices-displaying-dataframe
 
-from DataBaseHelper import DataBaseHelper
+from BaseHelper import BaseHelper
 import concurrent.futures as cf
 from yahoofinancials import YahooFinancials
 import time
@@ -14,9 +14,9 @@ from DataInterfaceHelper import dataInterfaceHelper
 from datetime import datetime, timedelta
 
 
-class ValueInvestingHelper(DataBaseHelper):
+class ValueInvestingHelper(BaseHelper):
     def __init__(self):
-        DataBaseHelper.__init__(self)
+        BaseHelper.__init__(self)
 
     dih = dataInterfaceHelper()
     gh = GraphHelper()
@@ -28,12 +28,12 @@ class ValueInvestingHelper(DataBaseHelper):
     incomeStatement = {}
     cashStatement = {}
     
-    def getGraphFig(self,ticker):
+    # def getGraphFig(self,ticker):
 
-        data = self.dih.get_historical_data(
-            ticker, datetime.now() + timedelta(days=-364), False
-        )
-        return self.gh.getGraph(data, ticker, "£")
+    #     data = self.dih.get_historical_data(
+    #         ticker, datetime.now() + timedelta(days=-364), False
+    #     )
+    #     return self.gh.getGraph(data, ticker, "£")
     
 
     def retrieve_stock_data(self, stock):
@@ -60,7 +60,7 @@ class ValueInvestingHelper(DataBaseHelper):
                 "cashflowStatementHistory"
             ][stock.tickerYahoo]
         except Exception as e:
-            print("error with retrieving stock data :" + e)
+            print("error with retrieving stock data :" + e+" stock: "+stock)
 
     def financialInfo(self, marketE):
         print(marketE.name)
@@ -83,7 +83,7 @@ class ValueInvestingHelper(DataBaseHelper):
         
         ## remove the old records first
         self.engine.execute("DELETE FROM "+sheetTableExt+" WHERE market='"+marketE.name+"'")
-        DataBaseHelper.session.commit()
+        BaseHelper.session.commit()
 
 
         for ticker in sheetData:
@@ -103,14 +103,13 @@ class ValueInvestingHelper(DataBaseHelper):
                 try:
                     df.to_sql(
                         sheetTableExt,
-                        con=DataBaseHelper.engine,
+                        con=BaseHelper.engine,
                         if_exists="append",
                         index=False,
                     )
-                    DataBaseHelper.session.commit()
+                    BaseHelper.session.commit()
                 except Exception as e:
                     logging.getLogger().debug(str(e))
-            print(ticker + sheetTableExt + " table create")
 
     def finalResults(self):
         ROE_req = 10
@@ -135,11 +134,14 @@ class ValueInvestingHelper(DataBaseHelper):
         ]
         print(both)
         return both
-
-    def processData(self, marketE):
-        
-        count_missing, count_cond, count_eps_0 = 0, 0, 0
+    
+    def processDataForMarket(self, marketE):
         tickers = self.get_stocks_list(marketE)
+        return self.processDataForTickers(tickers, marketE)
+    
+    def processDataForTickers(self, tickers, marketE):   
+        self.epsg_dict, self.roe_dict = {}, {}
+        count_missing, count_cond, count_eps_0 = 0, 0, 0
         for ticker in tickers:
             try:
                 lTicker = ticker.ticker.lower()
@@ -149,7 +151,7 @@ class ValueInvestingHelper(DataBaseHelper):
                     + "' AND epic='"
                     + lTicker
                     + "';",
-                    con=DataBaseHelper.conn,
+                    con=BaseHelper.conn,
                 )
                 incomeSheets = pandas.read_sql_query(
                     "SELECT * FROM public.val_inv_anal_incomesheet where market='"
@@ -157,7 +159,7 @@ class ValueInvestingHelper(DataBaseHelper):
                     + "' AND epic='"
                     + lTicker
                     + "';",
-                    con=DataBaseHelper.conn,
+                    con=BaseHelper.conn,
                 )
 
                 balSheetsDates = balanceSheets["date"].to_list()
@@ -235,7 +237,7 @@ class ValueInvestingHelper(DataBaseHelper):
                 continue
             
             df = pd.read_sql_query("SELECT * FROM public.val_inv_anal_balsheet where market='{}' ORDER BY date desc limit 1".format(
-                                                                                 market.name), DataBaseHelper.conn)
+                                                                                 market.name), BaseHelper.conn)
             if(df.empty):
                 mDate="Unknown"
             else:

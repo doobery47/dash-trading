@@ -1,14 +1,14 @@
-from DataBaseHelper import DataBaseHelper
+from BaseHelper import BaseHelper
 import pandas as pd
 from  PortfolioTypeE import PortfolioTypeE
 from operator import itemgetter
 from yahoo_fin import stock_info as si
 import logging
 
-class PortfolioHelper(DataBaseHelper):
+class PortfolioHelper(BaseHelper):
     
     def __init__(self):
-        DataBaseHelper.__init__(self)
+        BaseHelper.__init__(self)
 
     def calcProfitLoss(self):
         print(self)
@@ -22,9 +22,9 @@ class PortfolioHelper(DataBaseHelper):
         tickerVals={}
         
         if(pte == PortfolioTypeE.ManagedFundsISA):
-            df = pd.read_sql_query("SELECT * from isa_investments where owner='"+owner+"'", DataBaseHelper.conn)
+            df = pd.read_sql_query("SELECT * from isa_investments where owner='"+owner+"'", BaseHelper.conn)
         elif(pte == PortfolioTypeE.SIP):
-            df = pd.read_sql_query("SELECT * from pip_investments where owner='"+owner+"'", DataBaseHelper.conn)
+            df = pd.read_sql_query("SELECT * from pip_investments where owner='"+owner+"'", BaseHelper.conn)
         
         df=df.drop(df[df.name_a == ""].index)
         print(df['name_a'])

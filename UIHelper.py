@@ -1,11 +1,11 @@
 
-from DataBaseHelper import DataBaseHelper
+from BaseHelper import BaseHelper
 from dash import  dcc
 
 ## This class is to contain functions to build re-usable ui elemenets
-class UIHelper(DataBaseHelper):
+class UIHelper(BaseHelper):
     def __init__(self):
-        DataBaseHelper.__init__(self)
+        BaseHelper.__init__(self)
         
     def companyNameDropDown(self, marketE, dropdownName):
         options=[]

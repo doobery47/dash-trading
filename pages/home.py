@@ -10,23 +10,24 @@ from marketsenum import markets_enum
 import logging
 from DataInterfaceHelper import dataInterfaceHelper
 
-di = DataInterfaceHelper.dataInterfaceHelper()
+#di = DataInterfaceHelper.dataInterfaceHelper()
+dih = dataInterfaceHelper()
 gh = GraphHelper()
 
 dash.register_page(__name__, path="/", title="Home")
 
-di.UpdateMarketData(markets_enum.ftse100)
-di.UpdateMarketData(markets_enum.ftse250)
-di.UpdateMarketData(markets_enum.dow)
-di.UpdateMarketData(markets_enum.s_and_p)
-di.UpdateMarketData(markets_enum.nasdaq)
+dih.UpdateMarketData(markets_enum.ftse100)
+dih.UpdateMarketData(markets_enum.ftse250)
+dih.UpdateMarketData(markets_enum.dow)
+dih.UpdateMarketData(markets_enum.s_and_p)
+dih.UpdateMarketData(markets_enum.nasdaq)
 
-dih = dataInterfaceHelper()
 
-def buildCompRow(children,marketE, chosen_date_range, chosen_chart_type):
-    df = di.get_marketData(marketE, chosen_date_range)
-    openVal, closeVal = di.getMarketCurrentValue(marketE) 
-    fig = gh.getGraph(df, marketE.name,"pence", chosen_chart_type)
+
+def buildCompRow(children,marketE, noYears, chosen_chart_type):
+    df = dih.get_marketData(marketE, noYears)
+    openVal, closeVal = dih.getMarketCurrentValue(marketE) 
+    fig = gh.getGraph(df, marketE.name,None,marketE, "pence", chosen_chart_type)
     graph=dcc.Graph(figure=fig)
     footer=createFooter(openVal,closeVal)  
     
@@ -70,16 +71,14 @@ layout = html.Div(
                         ),
                         html.Div(
                             [
+                                
                                 dcc.RadioItems(
                                     id="date-range",
                                     options=[
-                                        dict(
-                                            label="year to date", value="year to date"
-                                        ),
-                                        dict(
-                                            label="all available data",
-                                            value="all available data",
-                                        ),
+                                            {"label":"year to date", "value":1},
+                                            {"label":"two years to date", "value":2},
+                                            {"label":"three years to date", "value":3}
+ 
                                     ],
                                     labelStyle={"display": "block"},
                                     style={
@@ -88,7 +87,7 @@ layout = html.Div(
                                         "marginBottom": "20px",
                                     },
                                     inputStyle={"marginRight": "20px"},
-                                    value="year to date",
+                                    value=1,
                                 )
                             ]
                         ),
@@ -144,15 +143,15 @@ layout = html.Div(
     Input(component_id="chart-type", component_property="value"),
 )
 # represents that which is assigned to the component property of the Input
-def build_graphs(chosen_date_range, chosen_chart_type):
+def build_graphs(noYears, chosen_chart_type):
     
     children=[]
     
-    children = buildCompRow(children,markets_enum.ftse100,chosen_date_range, chosen_chart_type)
-    children = buildCompRow(children,markets_enum.ftse250,chosen_date_range, chosen_chart_type)
-    children = buildCompRow(children,markets_enum.dow,chosen_date_range, chosen_chart_type)
-    children = buildCompRow(children, markets_enum.s_and_p ,chosen_date_range, chosen_chart_type)
-    children = buildCompRow(children,markets_enum.nasdaq, chosen_date_range, chosen_chart_type)
+    children = buildCompRow(children,markets_enum.ftse100,noYears, chosen_chart_type)
+    children = buildCompRow(children,markets_enum.ftse250,noYears, chosen_chart_type)
+    children = buildCompRow(children,markets_enum.dow,noYears, chosen_chart_type)
+    children = buildCompRow(children, markets_enum.s_and_p ,noYears, chosen_chart_type)
+    children = buildCompRow(children,markets_enum.nasdaq, noYears, chosen_chart_type)
                    
     return children
   

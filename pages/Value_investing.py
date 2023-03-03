@@ -14,19 +14,21 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from DataInterfaceHelper import dataInterfaceHelper
 import pageNames
+from ExtFinanceInterface import ExtFinanceInterface
 
 dash.register_page(__name__, title="Value Investing",order=pageNames.pn['Value_investing'])
 dih = dataInterfaceHelper()
 gh = GraphHelper()
 vih = ValueInvestingHelper()
 
-def buildCompRow( df, ticker, marketE,table):
+def buildCompRow( df, ticker, marketE,table, graphType='line'):
     news=dih.getRssNews(ticker)
     compName=dih.get_company_name(ticker, marketE)
-    fig=gh.buildFullGraph(compName,df)
+    fig=gh.getGraph(df,compName,ticker, marketE,"£", graphType)
+    #fig=gh.buildFullGraph(compName,df)
     gr=dcc.Graph(figure=fig)
-    row=dbc.Row([dbc.Col([gr],width={'size': 5}),
-                    dbc.Col([table],width={'size': 4},style={"maxHeight": "900px"}),
+    row=dbc.Row([dbc.Col([gr],width={'size': 6}),
+                    dbc.Col([table],width={'size': 3},style={"maxHeight": "900px"}),
                     dbc.Col(news,width={'size': 3},style={"maxHeight": "400px", "overflow": "scroll"}),
     ],style={"border":"2px black solid"})
     return html.Div(row)
@@ -106,38 +108,37 @@ layout = html.Div(
             ),
 
          ]),
-        # # dbc.Row(
-        # #     [
-        #             dbc.Spinner(html.Div(id="val-inv-anal"),spinner_style={"width": "3rem", "height": "3rem"}),
-        #             #html.Div(id='candlestick_anal'),width={'size': 8}
-        #             #width={'size': 10})
-        #     # ])
+        # dbc.Row(
+        #     [
+                    dbc.Spinner(html.Div(id="val-inv-anal"),spinner_style={"width": "3rem", "height": "3rem"}),
+                    #html.Div(id='candlestick_anal'),width={'size': 8}
+                    #width={'size': 10})
+            # ])
 
     ])
 
     
 @callback(
     Output(component_id='val-inv-anal', component_property='children'),
-    State(component_id='markets', component_property='value'),
+    Input(component_id='markets', component_property='value'),
     Input(component_id="review-btn", component_property='n_clicks'),
 )
-def view_market_data(marketVal, reviewBtn):
-
-    
+def view_m(marketVal,revBton):
+    efi=ExtFinanceInterface()
     if (marketVal == None):
         raise PreventUpdate
     marketE=markets_enum[marketVal]
     if "review-btn" == ctx.triggered_id:
-        vih.processData(marketE)
+        vih.processDataForMarket(marketE)
         tickers = vih.finalResults()
         #if not children:
         children=[]
         for tickerName in tickers:
             
-            ticker = vih.get_compound_ticker_name(tickerName, marketE)
+            ticker = vih.getTicker(tickerName, marketE)
             try:
                 data=dih.get_historical_data(ticker, datetime.now() + timedelta(days=-364), False)
-                tData,dd=dih.getTickerDataTest(ticker)
+                tData,dd=efi.getTickerDataTest(ticker, marketE)
                 tb=gh.buildTable(tData)
                 compRowData=buildCompRow(data,ticker, marketE, tb)
                 children.append(compRowData)     

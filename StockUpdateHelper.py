@@ -1,7 +1,7 @@
 import psycopg2
 import pandas as pd
 import pandas
-from DataBaseHelper import DataBaseHelper
+from BaseHelper import BaseHelper
 import pandas as pd
 from datetime import date
 from marketsenum import markets_enum
@@ -10,9 +10,9 @@ from DataInterfaceHelper import dataInterfaceHelper
 from datetime import date, datetime,timedelta
 import logging
 
-class StockUpdateHelper(DataBaseHelper):
+class StockUpdateHelper(BaseHelper):
     def __init__(self):
-        DataBaseHelper.__init__(self)
+        BaseHelper.__init__(self)
         
     def refineTableData(df):
         if(df.size == 0): # We have an empty table
@@ -27,14 +27,13 @@ class StockUpdateHelper(DataBaseHelper):
         di = dataInterfaceHelper()
         rlist=[]
         for me in markets_enum:  
-            if(me==markets_enum.s_and_p): continue # Ignore S and P for now
+            if(me==markets_enum.s_and_p or me==markets_enum.nasdaq): continue # Ignore S and P for now
             li=self.get_stocks_list(me)
             try:
                 mdata=di.get_ticker_data(li[0])
                 mDate=mdata.iloc[-1]['date']
-                print(li[0].tickerStrpName +": "+str(mDate))
                 rlist.append([me.name,mDate])
-            except:
+            except Exception as e:
                 rlist.append([me.name,"undefined"])
             
         df = pd.DataFrame (rlist, columns = ['market', 'last_update'])

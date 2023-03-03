@@ -7,7 +7,7 @@
 import numpy as np
 import pandas as pd
 import pandas
-from DataBaseHelper import DataBaseHelper
+from BaseHelper import BaseHelper
 import pandas as pd
 import datetime
 from datetime import date
@@ -19,9 +19,9 @@ from dash import html
 import logging
 
 
-class CandlestickAnalHelper(DataBaseHelper):
+class CandlestickAnalHelper(BaseHelper):
     def __init__(self):
-        DataBaseHelper.__init__(self)
+        BaseHelper.__init__(self)
 
     def is_consolidating(self, df, percentage):
         recent_candelsticks = df[-15:]        
@@ -60,8 +60,8 @@ class CandlestickAnalHelper(DataBaseHelper):
                 dfTicker = pandas.read_sql_query('SELECT * FROM public.'+
                                                  tickerNames.sqlTickerTableStr.lower()+
                                                  ' ORDER BY date DESC;', 
-                                                 con=DataBaseHelper.conn)
-                #DataBaseHelper.conn.execute("SELECT * FROM {} ORDER BY Date DESC;".format(ticker))
+                                                 con=BaseHelper.conn)
+                #BaseHelper.conn.execute("SELECT * FROM {} ORDER BY Date DESC;".format(ticker))
                 #row=cur.fetchall()
                 # pattern_function = getattr(talib, pattern)
                 # try:
@@ -89,9 +89,9 @@ class CandlestickAnalHelper(DataBaseHelper):
                 continue
         return self.buildTickerNameDict(breakout_list,marketsE)
     
-    def breakout(self, breakout, breakout_trading_range):
+    def breakout(self, ticker, breakout_trading_range):
        
-        df = pd.read_sql_query("SELECT * FROM "+self.mod_table_digit_name(breakout)+" ORDER BY date DESC LIMIT "+str(breakout_trading_range), self.conn)
+        df = pd.read_sql_query("SELECT * FROM "+ticker.sqlTickerTable+" ORDER BY date DESC LIMIT "+str(breakout_trading_range), self.conn)
 
 #        df = df.rename(columns = {'Date': 'date', 'Open': 'open', 'High': 'high', 'Low': 'low', 'Close': 'close', 'Adj Close': 'adj close', 'Volume': 'volume'})
         for i in (df.columns):

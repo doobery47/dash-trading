@@ -1,7 +1,7 @@
 
 
 
-from DataBaseHelper import DataBaseHelper
+from BaseHelper import BaseHelper
 import pandas as pd
 from PortfolioTypeE import PortfolioTypeE
 from operator import itemgetter
@@ -26,9 +26,9 @@ from sqlalchemy import (
 from marketsenum import markets_enum
 
 
-class ValInvDataConversion(DataBaseHelper):
+class ValInvDataConversion(BaseHelper):
     def __init__(self):
-        DataBaseHelper.__init__(self)
+        BaseHelper.__init__(self)
 
     def createBalanceSheetTable(self):
         try:
@@ -40,9 +40,10 @@ class ValInvDataConversion(DataBaseHelper):
                 Column("epic", String),
                 Column("market", String),
                 Column("intangibleAssets", BigInteger),
+                Column("intangibleAssets", BigInteger),
                 Column("capitalSurplus", BigInteger),
                 Column("totalLiab", BigInteger),
-                Column("totalStockholderEquity", BigInteger),
+                Column("investmentsinAssociatesatCost", BigInteger),
                 Column("otherCurrentLiab", BigInteger),
                 Column("totalAssets", BigInteger),
                 Column("commonStock", BigInteger),
@@ -192,11 +193,11 @@ class ValInvDataConversion(DataBaseHelper):
                 try:
                     df.to_sql(
                         "val_inv_anal_cashsheet",
-                        con=DataBaseHelper.engine,
+                        con=BaseHelper.engine,
                         if_exists="append",
                         index=False,
                     )
-                    DataBaseHelper.session.commit()
+                    BaseHelper.session.commit()
                 except Exception as e:
                     logging.getLogger().exception(str(e))
                     logging.getLogger().debug(ticker + " insert failed")
@@ -228,11 +229,11 @@ class ValInvDataConversion(DataBaseHelper):
                 try:
                     df.to_sql(
                         "val_inv_anal_incomesheet",
-                        con=DataBaseHelper.engine,
+                        con=BaseHelper.engine,
                         if_exists="append",
                         index=False,
                     )
-                    DataBaseHelper.session.commit()
+                    BaseHelper.session.commit()
                 except Exception as e:
                     logging.getLogger().exception(str(e))
                     logging.getLogger().debug(ticker + " insert failed")
@@ -252,7 +253,7 @@ class ValInvDataConversion(DataBaseHelper):
         info = open(anal_file, "r")
         balanceSheet = ast.literal_eval(info.read())
         dfTickers = pd.read_sql_query(
-            "SELECT * FROM public.val_inv_anal_balsheet;", con=DataBaseHelper.conn
+            "SELECT * FROM public.val_inv_anal_balsheet;", con=BaseHelper.conn
         )
 
         for ticker in balanceSheet:
@@ -274,11 +275,11 @@ class ValInvDataConversion(DataBaseHelper):
                 try:
                     df.to_sql(
                         "val_inv_anal_balsheet",
-                        con=DataBaseHelper.engine,
+                        con=BaseHelper.engine,
                         if_exists="append",
                         index=False,
                     )
-                    DataBaseHelper.session.commit()
+                    BaseHelper.session.commit()
                 except Exception as e:
                     logging.getLogger().debug(str(e))
             print(ticker + " added to val_inv_anal_balsheet")
@@ -293,10 +294,10 @@ class ValInvDataConversion(DataBaseHelper):
             lTicker = ticker.ticker.lower()
             try:
                 nm = '"' + nm + '"'
-                DataBaseHelper.conn.execute(
+                BaseHelper.conn.execute(
                     "DELETE FROM public." + tableName + "WHERE epic=" + nm
                 )
-                DataBaseHelper.session.commit()
+                BaseHelper.session.commit()
             except Exception as e:
                 logging.getLogger().debug(str(e))
 
@@ -309,14 +310,14 @@ class ValInvDataConversion(DataBaseHelper):
         ):
             try:
                 dfTickers = pd.read_sql_query(
-                    "SELECT * FROM public." + tb + ";", con=DataBaseHelper.conn
+                    "SELECT * FROM public." + tb + ";", con=BaseHelper.conn
                 )
                 for ticker in tickers:
                     lTicker = ticker.ticker.lower()
                     lTicker = "'" + lTicker + "'"
                     dfTickers["market"][dfTickers["epic"] == lTicker] = marketE.name
                 dfTickers.to_sql(
-                    tb, con=DataBaseHelper.engine, if_exists="replace", index=False
+                    tb, con=BaseHelper.engine, if_exists="replace", index=False
                 )
             except Exception as e:
                 print(str(e))
@@ -326,10 +327,10 @@ class ValInvDataConversion(DataBaseHelper):
     #     for drop in drops:
     #         try:
     #             #nm = '"' + nm + '"'
-    #             DataBaseHelper.conn.execute(
+    #             BaseHelper.conn.execute(
     #                 "DROP TABLE "+drop
     #             )
-    #             DataBaseHelper.session.commit()
+    #             BaseHelper.session.commit()
     #         except Exception as e:
     #             logging.getLogger().debug(str(e))            
 
