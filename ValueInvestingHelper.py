@@ -1,5 +1,5 @@
 # https://quantpy.com.au/python-for-finance/warren-buffett-value-investing-like-a-quant/
-# https://docs.streamlit.io/knowledge-base/using-streamlit/hide-row-indices-displaying-dataframe
+
 
 from BaseHelper import BaseHelper
 import concurrent.futures as cf
@@ -13,6 +13,8 @@ from GraphHelper import GraphHelper
 from DataInterfaceHelper import dataInterfaceHelper
 from datetime import datetime, timedelta
 
+import collections
+
 
 class ValueInvestingHelper(BaseHelper):
     def __init__(self):
@@ -20,6 +22,7 @@ class ValueInvestingHelper(BaseHelper):
 
     dih = dataInterfaceHelper()
     gh = GraphHelper()
+    
     
     roe_dict, epsg_dict = {}, {}
     
@@ -38,27 +41,26 @@ class ValueInvestingHelper(BaseHelper):
 
     def retrieve_stock_data(self, stock):
         try:
-            print(stock)
+            print(stock.ticker)
+            tstFile=open("valueTst.txt","a")
+            tstFile.write(stock.ticker)
             yahoo_financials = YahooFinancials(stock.tickerYahoo)
-            balance_sheet_data = yahoo_financials.get_financial_stmts(
-                "annual", "balance"
-            )
+            balance_sheet_data = yahoo_financials.get_financial_stmts("annual", "balance")
             print(balance_sheet_data)
-            income_statement_data = yahoo_financials.get_financial_stmts(
-                "annual", "income"
-            )
+            income_statement_data = yahoo_financials.get_financial_stmts("annual", "income")
             print(income_statement_data)
-            cash_statement_data = yahoo_financials.get_financial_stmts("annual", "cash")
-            print(cash_statement_data)
+            # cash_statement_data = yahoo_financials.get_financial_stmts(
+            #     "annual", "cash")
+            # print(cash_statement_data)
             self.balanceSheet[stock.ticker] = balance_sheet_data["balanceSheetHistory"][
                 stock.tickerYahoo
             ]
             self.incomeStatement[stock.ticker] = income_statement_data[
                 "incomeStatementHistory"
             ][stock.tickerYahoo]
-            self.cashStatement[stock.ticker] = cash_statement_data[
-                "cashflowStatementHistory"
-            ][stock.tickerYahoo]
+            # self.cashStatement[stock.ticker] = cash_statement_data[
+            #     "cashflowStatementHistory"
+            # ][stock.tickerYahoo]
         except Exception as e:
             print("error with retrieving stock data :" + e+" stock: "+stock)
 
@@ -75,13 +77,13 @@ class ValueInvestingHelper(BaseHelper):
 
         self.__sheetConversion(self.balanceSheet, "val_inv_anal_balsheet",marketE)
         self.__sheetConversion(self.incomeStatement, "val_inv_anal_incomesheet",marketE)
-        self.__sheetConversion(self.cashStatement, "val_inv_anal_cashsheet",marketE)
+        #self.__sheetConversion(self.cashStatement, "val_inv_anal_cashsheet",marketE)
 
         print("  time taken {:.2f} s".format(end - start))
 
     def __sheetConversion(self, sheetData, sheetTableExt,marketE):
         
-        ## remove the old records first
+        # remove the old records first
         self.engine.execute("DELETE FROM "+sheetTableExt+" WHERE market='"+marketE.name+"'")
         BaseHelper.session.commit()
 
@@ -91,6 +93,7 @@ class ValueInvestingHelper(BaseHelper):
                 continue
 
             for bs in sheetData[ticker]:
+                print(bs)
                 theDate = ""
                 for key, value in bs.items():
                     theDate = key
@@ -99,6 +102,16 @@ class ValueInvestingHelper(BaseHelper):
                 df.rename(columns={list(df)[0]: "date"}, inplace=True)
                 df['market']=marketE.name
                 df["epic"] = ticker.lower()
+                # A lot of column names in yahoo history have changed but we only need the ones below
+                # So we will save these and ignore the rest. 
+                # Improvement. We get all of the data, build the dataframe and remove the columns that are not required.
+                # Should just extract the columns we need and then build the table.
+                if(sheetTableExt == 'val_inv_anal_balsheet'): 
+                    df.drop(df.columns.difference(['date','market', 'epic', 'stockholdersEquity', 'commonStock']), 1, inplace=True)
+                else:
+                    df.drop(df.columns.difference(['date','market', 'epic', 'grossProfit','netIncome']), 1, inplace=True)
+                print(df)
+                df.to_csv("valueTst.csv")
 
                 try:
                     df.to_sql(
@@ -145,6 +158,7 @@ class ValueInvestingHelper(BaseHelper):
         for ticker in tickers:
             try:
                 lTicker = ticker.ticker.lower()
+                balSql = "SELECT * FROM public.val_inv_anal_balsheet where market='"+ marketE.name+ "' AND epic='"+ lTicker+ "';"
                 balanceSheets = pandas.read_sql_query(
                     "SELECT * FROM public.val_inv_anal_balsheet where market='"
                     + marketE.name
@@ -153,6 +167,7 @@ class ValueInvestingHelper(BaseHelper):
                     + "';",
                     con=BaseHelper.conn,
                 )
+                balSql = "SELECT * FROM public.val_inv_anal_incomesheet where market='"+ marketE.name+ "' AND epic='"+ lTicker+ "';"
                 incomeSheets = pandas.read_sql_query(
                     "SELECT * FROM public.val_inv_anal_incomesheet where market='"
                     + marketE.name
@@ -161,17 +176,28 @@ class ValueInvestingHelper(BaseHelper):
                     + "';",
                     con=BaseHelper.conn,
                 )
+                
+                # balSheetsDates = balanceSheets["date"].to_list()
+                # incomeSheetsDates = incomeSheets["date"].to_list()
+                
+                #we need to get 2 lists that have the same dates.
+                allDate=balanceSheets["date"].to_list()+incomeSheets["date"].to_list()
+                dates=[item for item, count in collections.Counter(allDate).items() if count > 1]
 
-                balSheetsDates = balanceSheets["date"].to_list()
-                incomeSheetsDates = incomeSheets["date"].to_list()
-                if balSheetsDates == incomeSheetsDates:
+ 
+                if len(allDate) >=2:
                     count_cond += 1
+                    
+                    equity = balanceSheets[balanceSheets['date'].isin(dates)]["stockholdersEquity"].to_list()
+                    commonStock = balanceSheets[balanceSheets['date'].isin(dates)]["commonStock"].to_list()
+                    profit = incomeSheets[incomeSheets['date'].isin(dates)]["grossProfit"].to_list()
+                    netIncome = incomeSheets[incomeSheets['date'].isin(dates)]["netIncome"].to_list()
 
-                    equity = balanceSheets["totalStockholderEquity"].to_list()
-                    commonStock = balanceSheets["commonStock"].to_list()
-                    profit = incomeSheets["grossProfit"].to_list()
-                    revenue = incomeSheets["totalRevenue"].to_list()
-                    netIncome = incomeSheets["netIncome"].to_list()
+                    # equity = balanceSheets["stockholdersEquity"].to_list() # used to be called "totalStockholderEquity"
+                    # commonStock = balanceSheets["commonStock"].to_list()
+                    # profit = incomeSheets["grossProfit"].to_list()
+                    # revenue = incomeSheets["totalRevenue"].to_list()
+                    # netIncome = incomeSheets["netIncome"].to_list()
                     roe = [
                         round(netin / equity * 100, 2)
                         for netin, equity in zip(netIncome, equity)
