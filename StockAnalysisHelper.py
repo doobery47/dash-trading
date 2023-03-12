@@ -5,24 +5,13 @@ import pandas as pd
 from BaseHelper import BaseHelper
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-import time
 import pandas
-import holidays
 from dash import dash_table
 from DataInterfaceHelper import dataInterfaceHelper
 from ExtFinanceInterface import ExtFinanceInterface
-import numpy as np
 ## To use statsmodels for linear regression
-import statsmodels.formula.api as smf
-
-
-from dash import Dash, html
-
-
-import collections
 
 ## To use sklearn for linear regression
-from sklearn.linear_model import LinearRegression
 
 
 class StockAnalysisHelper(BaseHelper):
@@ -47,48 +36,67 @@ class StockAnalysisHelper(BaseHelper):
         dates.append(today)
         dates.append(one_yrs_ago)
         dates.append(two_yrs_ago)
-        dates.append(three_yrs_ago)
+        if(years == 3):
+            dates.append(three_yrs_ago)
+        columns=['ticker','company']
+        columns.extend(dates)
+        columns.append('yahoo')
 
         dfNew = pd.DataFrame(
-            columns=[
-                "ticker",
-                "company",
-                str(three_yrs_ago),
-                str(two_yrs_ago),
-                str(one_yrs_ago),
-                str(today),
-                'yahoo'
-                # "sector",
-                # "gross profit",
-                # "profit margin",
-                # "cash",
-                # "debt",
-                # "forward EPS",
-                # "Book Val",
-                # "forward PE",
-            ]
+            columns=columns
+            # [
+            #     "ticker",
+            #     "company",
+            #     str(three_yrs_ago) if years == 3 else 'No'
+            #     ,
+            #     str(two_yrs_ago),
+            #     str(one_yrs_ago),
+            #     str(today),
+            #     'yahoo'
+            #     # "sector",
+            #     # "gross profit",
+            #     # "profit margin",
+            #     # "cash",
+            #     # "debt",
+            #     # "forward EPS",
+            #     # "Book Val",
+            #     # "forward PE",
+            # ]
         )
 
         for ticker in tickers:
             # so we get the last recorded day info and the year/2 year and then 3 years.
             # if last record close is higher than 1/2/3 years ago then we have a hit.
             # record the ticker name and close values
-
-            df = pd.read_sql_query(
-                "select date,close from "
+            sqlStr=""
+            todayStr="'"+today+"'"
+            one_yrs_agoStr = "'"+one_yrs_ago+"'" 
+            two_yrs_agoStr = "'"+two_yrs_ago+"'"
+            three_yrs_agoStr="'"+three_yrs_ago+"'"
+            
+            if(years==3):
+                sqlStr="select date,close from "+ ticker.sqlTickerTableStr+ " where date in ({},{},{},{});".format(todayStr, one_yrs_agoStr, two_yrs_agoStr,three_yrs_agoStr
+                )
+            else:
+                sqlStr="select date,close from "
                 + ticker.sqlTickerTableStr
-                + " where date in ('{}','{}','{}','{}');".format(
-                    today, one_yrs_ago, two_yrs_ago,three_yrs_ago
-                ),
-                self.conn,
-            )
+                + " where date in ('{}','{}','{}');".format(
+                    today, one_yrs_ago, two_yrs_ago
+                )
+
+            df = pd.read_sql_query(sqlStr, self.conn)
 
             ## look to see if any missing. If so then make another
-            if (df.shape[0] == 4 ):  # only interested in companies trading for 3 years or more
-                if (
-                    df.iloc[3]["close"] > df.iloc[2]["close"]
+            if ((years == 3 and df.shape[0] == 4) or (years == 2 and df.shape[0] == 3) ):  # only interested in companies trading for 3 years or more
+                if ((years == 3 and
+                    (df.iloc[3]["close"] > df.iloc[2]["close"]
                     and df.iloc[2]["close"] > df.iloc[1]["close"]
-                    and df.iloc[1]["close"] > df.iloc[0]["close"]
+                    and df.iloc[1]["close"] > df.iloc[0]["close"]))
+                    or
+                    (years == 2 and
+                    (df.iloc[2]["close"] > df.iloc[1]["close"]
+                    and df.iloc[1]["close"] > df.iloc[0]["close"]))
+                    
                 ):
                     df["ticker"] = ticker.tickerStrpName
                     tData,dd=self.efi.getTickerData(ticker,marketE)

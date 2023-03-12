@@ -48,6 +48,13 @@ improvements for dash version.
 
 Stratagy
 
+Stock analysis additionns
+1. Activate the date option so that it analyses over 2 or 3 years. But the plot shuld lways show 3 years. Interesting to see what
+    the stock did on the 3rd year.
+2. Add cadelstick option
+3. Add a plot with all the selected stocks but plot percentage change.
+
+
 What has an impact on the share price?
 1. The fed and the BOE - mainly the interest rates. 
     - How and what are the impacts.

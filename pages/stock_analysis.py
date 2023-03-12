@@ -34,7 +34,7 @@ layout = html.Div(
                     [
                         html.Div(
                             dcc.Dropdown(
-                                id="namrket-names",
+                                id="market-names",
                                 placeholder="Update market...",
                                 options=[
                                     {"label": "FTSE 100", "value": "ftse100"},
@@ -103,9 +103,8 @@ layout = html.Div(
                                 dcc.RadioItems(
                                     id="analyis-period",
                                     options=[
-                                        dict(label="1 years", value="oneYear"),
-                                        dict(label="2 years", value="twoYears"),
-                                        dict(label="3 years", value="threeYears"),
+                                        dict(label="2 years", value=2),
+                                        dict(label="3 years", value=3),
                                     ],
                                     labelStyle={"display": "block"},
                                     style={
@@ -114,23 +113,49 @@ layout = html.Div(
                                         "marginBottom": "20px",
                                     },
                                     inputStyle={"marginRight": "20px"},
-                                    value="threeYears",
+                                    value=3,
                                 )
                             ]
                         ),
                     ],
-                    width={"size": 3},
+                    width={"size": 2},
                 ),
                 dbc.Col(
                     [
                         html.H4("Apply value investing", style={"textAlign": "left"}),
                         html.Div(
                             [
+                                dcc.Checklist(['Analyse with Value Investing'],id="value-investing")
+                                # dcc.RadioItems(
+                                #     id="value-investing",
+                                #     options=[
+                                #         dict(label="yes", value="yes"),
+                                #         dict(label="no", value="no"),
+                                #     ],
+                                #     labelStyle={"display": "block"},
+                                #     style={
+                                #         "fontSize": 20,
+                                #         "marginLeft": "15px",
+                                #         "marginBottom": "20px",
+                                #     },
+                                #     inputStyle={"marginRight": "20px"},
+                                #     value="no",
+                                # )
+                            ]
+                        ),
+                    ],
+                    width={"size": 2},
+                ),
+                dbc.Col(
+                    [
+                        html.H4("Graph type", style={"textAlign": "left"}),
+                        html.Div(
+                            [
                                 dcc.RadioItems(
-                                    id="value-investing",
+                                    id="graph-type",
                                     options=[
-                                        dict(label="yes", value="yes"),
-                                        dict(label="no", value="no"),
+                                        dict(label="line", value='line'),
+                                        dict(label="candelstick", value='candelstick'),
                                     ],
                                     labelStyle={"display": "block"},
                                     style={
@@ -139,12 +164,11 @@ layout = html.Div(
                                         "marginBottom": "20px",
                                     },
                                     inputStyle={"marginRight": "20px"},
-                                    value="no",
+                                    value='line',
                                 )
                             ]
                         ),
-                    ],
-                    width={"size": 3},
+                    ],width={"size": 2},
                 ),
                 dbc.Spinner(
                     html.Div(id="anal-table"),
@@ -160,7 +184,7 @@ layout = html.Div(
 
 @callback(
     Output(component_id="anal-table", component_property="children"),
-    Input(component_id="namrket-names", component_property="value"),
+    Input(component_id="market-names", component_property="value"),
     Input(component_id="analyis-period", component_property="value"),
     Input(component_id="value-investing", component_property="value"),
 )
@@ -194,10 +218,11 @@ def build_market_data(marketVal, analPeriod, valueInvesting):
     Output(component_id="comp-analysis-gr", component_property="children"),
     Output(component_id="comp-analysis-news", component_property="children"),
     Input(component_id={"type": "dyn-analysis-table", "index": ALL}, component_property="active_cell"),
+    Input(component_id="graph-type", component_property="value"),
     State(component_id={"type": "dyn-analysis-table", "index": ALL}, component_property="data"),
-    State(component_id="namrket-names", component_property="value"),
+    State(component_id="market-names", component_property="value"),
 )
-def buildGraph(actCell, data, marketStr):
+def buildGraph(actCell, graphType,data, marketStr):
     if not actCell or actCell[0] == None:
         raise PreventUpdate
     dih = dataInterfaceHelper()
@@ -217,14 +242,9 @@ def buildGraph(actCell, data, marketStr):
     children = []
 
     gr = gh.getGraph(
-        data, compName, ticker, marketE, "£", "line", simpleLinearRegresion=True
+        data, compName, ticker, marketE, "£", graphType, simpleLinearRegresion=True
     )
     gr.update_layout(margin=dict(t=100, b=5, l=2, r=2),width=1500, height=700)
-    children.append(
-        dcc.Graph(
-            id={"type": "dynamic-graph", "index": 0},
-            figure=gr,
-        )
-    )
+    children.append(dcc.Graph(id={"type": "dynamic-graph", "index": 0},figure=gr,))
     news = dih.getRssNews(ticker.tickerYahoo, "16px")
     return children, news

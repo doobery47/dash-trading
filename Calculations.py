@@ -75,7 +75,7 @@ class TradingCalculations(BaseHelper):
         
         # merged = mh_df.merge(th_df, indicator=True, how='outer')
         # merged[merged['_merge'] == 'right_only']
-        # merged.to_csv("merged.csv")
+        # merged.("merged.csv")
         
         # marketHistory.to_csv('marketHistory.csv')
         # tickerHistory.to_csv('tickerHistory.csv')

@@ -199,6 +199,100 @@ class DB_Maintenance(BaseHelper):
             print(tickerTables)
             print(tickerDel)
             
+    def find8KTables(self):
+        lst=["tsibw",
+        "gtpbw",
+        "bam",
+        "efhtu",
+        "igacw",
+        "fnrg",
+        "mnk",
+        "hpltw",
+        "lase",
+        "hlahw",
+        "hiiiw",
+        "hciiw",
+        "hcicw",
+        "hcarw",
+        "ohpaw",
+        "vckaw",
+        "gwiiw",
+        "gxiiw",
+        "sclew",
+        "gtpaw",
+        "phicw",
+        "gsevw",
+        "revhw",
+        "prme",
+        "qomou",
+        "svii",
+        "gnacw",
+        "gmfiw",
+        "pticw",
+        "laxxw",
+        "ndacw",
+        "glhaw",
+        "giwww",
+        "ctm",
+        "lmacw",
+        "clrmw",
+        "giixw",
+        "dow",
+        "perf",
+        "flacw",
+        "hudau",
+        "mbly",
+        "frwaw",
+        "agn",
+        "rtn",
+        "fsrdw",
+        "psagw",
+        "gsdww",
+        "esscr",
+        "aqu",
+        "esscw",
+        "utx",
+        "saj",
+        "noacw",
+        "hcviw",
+        "lgcy",
+        "aqunu",
+        "fssiw",
+        "gsrmw",
+        "laaaw",
+        "xone",
+        "swetw",
+        "films",
+        "glliw",
+        "hmcow",
+        "afacw",
+        "lctx",
+        "rca",
+        "ec",
+        "fei",
+        "hypr",
+        "apcxw",
+        "adnww",
+        "etx",
+        "agilw",
+        "avptw",
+        "auudw",
+        "avctw",
+        "whlrl",
+        "aurow",
+        "arbew",
+        "mggt"]
+        for market in markets_enum:
+            if(market.name == 'nasdaq' or market.name=='s_and_p'):
+                continue
+            for tb in lst:
+                mar="'"+market.name+"'"
+                cmp="'"+tb+"'"
+                df = pd.read_sql_query("SELECT * FROM {} ;".format( market.name +" where epic="+cmp), BaseHelper.conn)
+                print(df)
+                if(df.shape[0]==1):
+                    print("delete from "+mar+" where ipic="+cmp)  
+            
                     
                               
                 
@@ -206,6 +300,4 @@ if __name__ == "__main__":
     dbm =DB_Maintenance()
     nasLst=["ftse100", "ftse250", "dow"]
 
-    for nas in nasLst:
-        marketE=markets_enum[nas]
-        dbm.lessThan10Records(marketE)
+    dbm.find8KTables()
