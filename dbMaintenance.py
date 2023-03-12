@@ -85,7 +85,93 @@ class DB_Maintenance(BaseHelper):
                             index=False,
                         )
                     BaseHelper.session.commit()
+                    
+    ## check the list for:
+    ## 1. Any close value over or under 30% change from previous close value. If found then correct to either plus or
+    ##      minus 5% or the previous close.
+    ## 2. sort the dataframe to ensure all dates are in order
+    def __validateHistory(self, df, ticker, marketE, found):
+ 
+        prevClose=0
+        prevOpen=0
+        prevHigh=0
+        prevLow=0
+        PrevAdjClose=0
+        differentDFs=False
+        # if(ticker.ticker=="MUSA" or found == True):
+        #     found=True
+        # else:
+        #     return df, differentDFs, found
+        
+        for i in range(0, len(df)):
+            percChange = round(((df.iloc[i]['close']-prevClose)*100)/df.iloc[i]['close'],2)
+            if(i == 0):
+                prevClose = df.iloc[i]['close']
+                prevOpen=df.iloc[i]['open']
+                prevLow=df.iloc[i]['low']
+                prevHigh=df.iloc[i]['high']
+                PrevAdjClose=df.iloc[i]['Adj Close']
+                continue
+            else:
+                if(percChange >1000):
+                    df.iloc[i] = {'close': prevClose-(prevClose/100)*5, 
+                                  'open': prevOpen-(prevOpen/100)*5, 
+                                  'low': prevLow-(prevLow/100)*5, 
+                                  'high': prevHigh-(prevHigh/100)*5,
+                                  'Adj Close':PrevAdjClose-(PrevAdjClose/100)*5,
+                                  'date': df.iloc[i]['date'],
+                                  'volume': df.iloc[i]['volume']
+                                  }
+                    print("drop table " +ticker.ticker +" " +marketE.name)
+                    differentDFs = True
+                elif(percChange < -1000 ):
+                    df.iloc[i] = {'close': prevClose-(prevClose/100)*5, 
+                                  'open': prevOpen-(prevOpen/100)*5, 
+                                  'low': prevLow-(prevLow/100)*5, 
+                                  'high': prevHigh-(prevHigh/100)*5,
+                                  'Adj Close':PrevAdjClose-(PrevAdjClose/100)*5,
+                                  'date': df.iloc[i]['date'],
+                                  'volume': df.iloc[i]['volume']                                
+                                  }
+                    differentDFs = True
+                    print("drop table " +ticker.ticker +" " +marketE.name)
+                    
+                    
+            prevClose = df.iloc[i]['close']
+            prevOpen=df.iloc[i]['open']
+            prevLow=df.iloc[i]['low']
+            prevHigh=df.iloc[i]['high']
+            PrevAdjClose=df.iloc[i]['Adj Close']
+            
+        df=df.sort_index()       
+        return df, differentDFs, found                  
+      
                         
+    # clean any "close" values that are over 1000% from the previous days "close value"
+    def cleanRecords(self, marketE):
+        dih = dataInterfaceHelper()
+        found=False
+            
+        tickers = self.get_stocks_list(marketE)
+        for ticker in tickers:
+            tickerHistory=dih.get_historical_data(ticker)
+            #tickerHistory.drop_duplicates(subset="date", keep='first', inplace=True)
+            df,differentDFs, found=self.__validateHistory(tickerHistory, ticker, marketE, found)
+            if(not found):
+                continue
+            if differentDFs:
+                #print(marketE.name+" "+ticker.ticker+" Changed")
+                df.to_sql(ticker.sqlTickerTable,
+                        con=BaseHelper.conn,
+                        schema="public",
+                        if_exists="replace",
+                        index=False,
+                )
+                BaseHelper.session.commit()
+            # else:
+                print(marketE.name+" "+ticker.ticker+" not Changed")
+    
+    
     def deleteDuplicateRows(self, marketE):
         tickers = self.get_stocks_list(markets_enum.ftse100)
         for ticker in tickers:
@@ -144,6 +230,21 @@ class DB_Maintenance(BaseHelper):
                     + "'"
                 )
                 BaseHelper.session.commit()
+                
+    
+    # not interested in stock that has 0 volume
+    # and less than 500 rows
+    def listTablesWith0Volume(self, marketE):
+        dih = dataInterfaceHelper()
+            
+        tickers = self.get_stocks_list(marketE)
+        for ticker in tickers:
+            tickerHistory=dih.get_historical_data(ticker)
+            if(len(tickerHistory) < 500):
+                print("drop table "+ticker.ticker +"; ") 
+                print("DELETE FROM "+marketE.name+" WHERE epic='"+ticker.ticker +"'; " )           
+            
+        
 
      # This function is used to remove all tables associated with a market.
     # Main reason for this if we find a number of errors in the data then we can
@@ -298,6 +399,10 @@ class DB_Maintenance(BaseHelper):
                 
 if __name__ == "__main__":
     dbm =DB_Maintenance()
-    nasLst=["ftse100", "ftse250", "dow"]
-
-    dbm.find8KTables()
+    # for market in markets_enum:
+    #     if(market.name == 'nasdaq' or market.name=='s_and_p'or market.name=='ftse100' or market.name=='ftse250' 
+    #        or market.name=='dow' or market.name=='nasdaq_basic_materials'):
+    #         continue
+    market=markets_enum['nasdaq_utilities']
+    #dbm.cleanRecords(market)
+    dbm.listTablesWith0Volume(market)

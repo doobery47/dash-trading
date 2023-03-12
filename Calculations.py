@@ -29,9 +29,13 @@ class TradingCalculations(BaseHelper):
     def epocTime(self,dtSeries):
         dVals = []
         
-        for dt in dtSeries:       
-            epoch = int((dt - datetime(1970,1,1).date()).total_seconds())/10000
-            dtSeries = dtSeries.replace(to_replace = dt, value = epoch)
+        for dt in dtSeries:  
+            try:     
+                epoch = int((dt - datetime(1970,1,1).date()).total_seconds())/10000
+                dtSeries = dtSeries.replace(to_replace = dt, value = epoch)
+            except Exception as e:
+                dtSeries.to_csv("epochTest.csv")
+                print(e)
 
         return dtSeries
         
@@ -161,17 +165,53 @@ class TradingCalculations(BaseHelper):
 
         return new_x, new_y  # return x and y of new point that belongs to the line
     
+    # percentage change = (price2-price1)*100)/price1
+    ## compound - If this is set then the percenatge chnage is based on the first value
+    ##            the list. If not set then it is based and percentage chnage from the day before
+    def calculatePecentageChange(self,df, compound=True):
+        closeVals=df['close']
+        dates=df['date']
+        
+        if __name__ == "__main__":
+            print("dates "+str(len(dates)))
+            
+        if compound:
+            firstVal=df['close'].iloc[0]
+            percChange =((closeVals-firstVal)*100)/closeVals
+        else:
+            percChange =((closeVals-closeVals.shift())*100)/closeVals
+        
+        # a bit of a smudge. to correct any data values that incorrect in the data
+        # if the value is moew than +/- 15% then we use  avarage of the previous and next day. 
+        if __name__ == "__main__":
+            print("percChange "+str(len(percChange)))
+            print(percChange)
+            print(dates)
+            
+        percChange.iloc[1:]
+        dates.iloc[1:]
+        frame = { 'date': dates, 'perc-change': percChange }
+        newDf = pd.DataFrame(frame)
+        
+        if __name__ == "__main__":
+            print(newDf)
+            newDf.to_csv("calcTest.csv")
+            
+        return newDf
+
     
 if __name__ == "__main__":
     di = TradingCalculations()
     #dd = di.topShares(markets_enum.ftse250)
     #print(dd)
-    marketE=markets_enum.nasdaq_finance
+    marketE=markets_enum.ftse100
     dih = dataInterfaceHelper()
     two_yrs_ago = dih.holidayDateAdjust(datetime.now() - relativedelta(years=2), marketE)
     for ticker in di.get_stocks_list(marketE):  
+        if(ticker.ticker=='WPP'):
+            print('here')
         df=dih.get_historical_data(ticker,str(two_yrs_ago))  
-        di.simpleLinearRegresion(df,ticker,marketE)
+        di.calculatePecentageChange(df)
 
         
 # %%

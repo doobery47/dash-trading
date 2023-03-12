@@ -25,9 +25,6 @@ class StockAnalysisHelper(BaseHelper):
         tickers = self.get_stocks_list(marketE)
         today = datetime.now()
         weekno = datetime.today().weekday()
-        # fri=4
-        # sat=5#
-        # sun=6
         today = str(self.holidayDateAdjust(datetime.now() - timedelta(days=1), marketE))
         one_yrs_ago = str(self.holidayDateAdjust(datetime.now() - relativedelta(years=1), marketE))
         two_yrs_ago = str(self.holidayDateAdjust(datetime.now() - relativedelta(years=2), marketE))
@@ -44,24 +41,6 @@ class StockAnalysisHelper(BaseHelper):
 
         dfNew = pd.DataFrame(
             columns=columns
-            # [
-            #     "ticker",
-            #     "company",
-            #     str(three_yrs_ago) if years == 3 else 'No'
-            #     ,
-            #     str(two_yrs_ago),
-            #     str(one_yrs_ago),
-            #     str(today),
-            #     'yahoo'
-            #     # "sector",
-            #     # "gross profit",
-            #     # "profit margin",
-            #     # "cash",
-            #     # "debt",
-            #     # "forward EPS",
-            #     # "Book Val",
-            #     # "forward PE",
-            # ]
         )
 
         for ticker in tickers:
@@ -78,11 +57,7 @@ class StockAnalysisHelper(BaseHelper):
                 sqlStr="select date,close from "+ ticker.sqlTickerTableStr+ " where date in ({},{},{},{});".format(todayStr, one_yrs_agoStr, two_yrs_agoStr,three_yrs_agoStr
                 )
             else:
-                sqlStr="select date,close from "
-                + ticker.sqlTickerTableStr
-                + " where date in ('{}','{}','{}');".format(
-                    today, one_yrs_ago, two_yrs_ago
-                )
+                sqlStr="select date,close from "+ ticker.sqlTickerTableStr + " where date in ('{}','{}','{}');".format(today, one_yrs_ago, two_yrs_ago)
 
             df = pd.read_sql_query(sqlStr, self.conn)
 
@@ -100,25 +75,20 @@ class StockAnalysisHelper(BaseHelper):
                 ):
                     df["ticker"] = ticker.tickerStrpName
                     tData,dd=self.efi.getTickerData(ticker,marketE)
-
-                    dfNew.loc[-1] = [
+                    
+                    dfNewLst = [
                         ticker.tickerStrpName,
                         self.get_company_name(ticker,marketE),
-                        round(df.iloc[0]["close"],2),
-                        round(df.iloc[1]["close"],2),
-                        round(df.iloc[2]["close"],2),
                         round(df.iloc[3]["close"],2),
-                        #html.Td(html.A(dd['yahoo'], target='_blank',href=ticker.tickerStrpName))
-                        dd['yahoo']
-                        # dd["sector"],
-                        # dd["gross profits"],
-                        # dd["profit margins"],
-                        # dd["total cash"],
-                        # dd["total debt"],
-                        # dd["forward EPS"],
-                        # dd["book value"],
-                        # round(dd["forward PE"],2),
-                    ]  # adding a row
+                        round(df.iloc[2]["close"],2),
+                        round(df.iloc[1]["close"],2),
+                    ]
+                    if(years == 3):
+                            dfNewLst.append(round(df.iloc[0]["close"],2))
+                    dfNewLst.append(dd['yahoo'])
+                        
+
+                    dfNew.loc[-1] = dfNewLst # adding a row
                     dfNew.index = dfNew.index + 1  # shifting index
                     dfNew = dfNew.sort_index()  # sorting by index
                     df['id'] = df['ticker']
@@ -136,7 +106,14 @@ class StockAnalysisHelper(BaseHelper):
         dates,
         marketE,
         height=500,
-    ):
+):
+        dates0=dates[0]
+        dates1=dates[1]
+        dates2=dates[2]
+        if(len(dates)==4): 
+            dates3=dates[3] 
+        else: 
+            dates3=""
         return (
             dash_table.DataTable(
                 id={"type": "dyn-analysis-table", "index": 0},
@@ -152,28 +129,16 @@ class StockAnalysisHelper(BaseHelper):
                     "fontWeight": "bold",
                     "border": "1px solid black",
                 },
-                # tooltip_data=[{
-                #     'ticker': {
-                #         'value': self.get_company_name(self.get_compound_ticker_name(row['ticker'],marketE),marketE),
-                #         'type': 'markdown'
-                #     }
-                # } for row in dff.to_dict('records')],
-                # ----------------------------------------------------------------
-                # Striped Rows
-                # ----------------------------------------------------------------
-                # style_header={
-                #     'backgroundColor': 'rgb(230, 230, 230)',
-                #     'fontWeight': 'bold'
-                # },
                 style_data_conditional=[  # style_data.c refers only to data rows
                     {
                         "if": {"row_index": "odd"},
                         "backgroundColor": "rgb(248, 248, 248)",
                     },
-                    {"if": {"column_id": dates[0]}, "width": "6%"},
-                    {"if": {"column_id": dates[1]}, "width": "6%"},
-                    {"if": {"column_id": dates[2]}, "width": "6%"},
-                    {"if": {"column_id": dates[3]}, "width": "6%"},
+
+                    {"if": {"column_id": dates0}, "width": "6%"},
+                    {"if": {"column_id": dates1}, "width": "6%"},
+                    {"if": {"column_id": dates2}, "width": "6%"},
+                    {"if": {"column_id": dates3}, "width": "6%"},
                     {"if": {"column_id": 'yahoo'}, "width": "60%"},
                     {"if": {"column_id": "ticker"}, "width": "6%"},
                     {"if": {"column_id": "company"}, "width": "10%"},
@@ -217,6 +182,13 @@ class StockAnalysisHelper(BaseHelper):
                 rule="display: inline; white-space: inherit; overflow: inherit; text-overflow: inherit;",
             )
         )
+        
+        def buildPercChangeGraph(self, tickers, marketE):
+            tickerPercChangeLst=[]
+            for ticker in di.get_stocks_list(marketE):  
+                df=dih.get_historical_data(ticker,str(two_yrs_ago))  
+                tickerPercChangeLst.append(di.calculatePecentageChange(df))
+                
         
    
     

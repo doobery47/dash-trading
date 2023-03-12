@@ -51,8 +51,10 @@ layout = html.Div(
                     html.Div(
                     dcc.Dropdown(id='markets-mar', placeholder='Update market...',
                         options=[{'label': 'FTSE 100', 'value': 'ftse100'},
+                                 {'label': 'All markets', 'value': 'all'},
                                 {'label': 'FTSE 250', 'value': 'ftse250'},
                                 {'label': 'DOW', 'value': 'dow'},
+                                {'label': 'All nasdaq', 'value': 'all_nasdaq'},
                                 {'label': 'NASDAQ-Basic Materials',
                                     'value': 'nasdaq_basic_materials'},
                                 {'label': 'NASDAQ-Consumer Discretionary',

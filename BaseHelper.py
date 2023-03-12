@@ -168,6 +168,7 @@ class BaseHelper:
         return dat.date()
 
     def getTicker(self, tickerStr, marketE):
+        tickerStr = tickerStr.strip() # remove any leading or trailing spaces
         tickerYahooExt = ""  # default value
         if (marketE == markets_enum.ftse100):
             tickerYahooExt = ".L"

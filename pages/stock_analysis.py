@@ -125,22 +125,21 @@ layout = html.Div(
                         html.H4("Apply value investing", style={"textAlign": "left"}),
                         html.Div(
                             [
-                                dcc.Checklist(['Analyse with Value Investing'],id="value-investing")
-                                # dcc.RadioItems(
-                                #     id="value-investing",
-                                #     options=[
-                                #         dict(label="yes", value="yes"),
-                                #         dict(label="no", value="no"),
-                                #     ],
-                                #     labelStyle={"display": "block"},
-                                #     style={
-                                #         "fontSize": 20,
-                                #         "marginLeft": "15px",
-                                #         "marginBottom": "20px",
-                                #     },
-                                #     inputStyle={"marginRight": "20px"},
-                                #     value="no",
-                                # )
+                                dcc.RadioItems(
+                                    id="value-investing",
+                                    options=[
+                                        dict(label="Apply", value='apply'),
+                                        dict(label="Remove", value='remove'),
+                                    ],
+                                    labelStyle={"display": "block"},
+                                    style={
+                                        "fontSize": 20,
+                                        "marginLeft": "15px",
+                                        "marginBottom": "20px",
+                                    },
+                                    inputStyle={"marginRight": "20px"},
+                                    value='line',
+                                )
                             ]
                         ),
                     ],
@@ -176,6 +175,7 @@ layout = html.Div(
                 ),
             ]
         ),
+        dbc.Row([dbc.Col([html.Div(id="comp-analysis-perc-graph")], width={"size": 12})]),
         dbc.Row([dbc.Col([html.Div(id="comp-analysis-gr")], width={"size": 12})]),
         dbc.Row([dbc.Col([html.Div(id="comp-analysis-news")], width={"size": 12})]),
     ]
@@ -184,22 +184,28 @@ layout = html.Div(
 
 @callback(
     Output(component_id="anal-table", component_property="children"),
+    Output(component_id='comp-analysis-perc-graph',component_property="children"),
     Input(component_id="market-names", component_property="value"),
     Input(component_id="analyis-period", component_property="value"),
     Input(component_id="value-investing", component_property="value"),
+    prevent_initial_call=True,
 )
 def build_market_data(marketVal, analPeriod, valueInvesting):
+    gh = GraphHelper()
+    tc=TradingCalculations()
+    dih = dataInterfaceHelper()
+    
     if marketVal != None:
         marketE = markets_enum[marketVal]
         performaceStock, dates = sah.topShares(marketE, analPeriod)
-        if valueInvesting == "yes":
+        if valueInvesting == "apply":
             vih = ValueInvestingHelper()
             tickerNames = performaceStock["ticker"].tolist()
-            tickers2Proc = []
+            tickers = []
             for tickerName in tickerNames:
-                tickers2Proc.append(vih.getTicker(tickerName, marketE))
+                tickers.append(vih.getTicker(tickerName, marketE))
 
-            vih.processDataForTickers(tickers2Proc, marketE)
+            vih.processDataForTickers(tickers, marketE)
             vih_tickers = vih.finalResults()
             vih_tickersU= list(map(str.upper,vih_tickers))
             intersect = list(set(performaceStock["ticker"].tolist()).intersection(vih_tickersU)) # the rows that are in both analysis and Value Investing
@@ -209,7 +215,20 @@ def build_market_data(marketVal, analPeriod, valueInvesting):
         performaceStock.set_index("id", inplace=True, drop=False)
         # create an interactive table from list
         #if performaceStock.shape[0] > 0:
-        return sah.buildDashTable(performaceStock, dates, marketE)
+        
+        #Buid percentage change graph for all tickers
+        percChangeDict = {}
+        tickerNames = performaceStock["ticker"].tolist()
+        for tickerName in tickerNames:
+            ticker = dih.getTicker(tickerName, marketE)
+            df = dih.get_historical_data(ticker, str((datetime.now() - relativedelta(years=3)).date()))
+            percChangeDict[tickerName] = tc.calculatePecentageChange(df)
+        perGraph = gh.buildPercGraph(percChangeDict)
+        children=[]
+        perGraph.update_layout(margin=dict(t=100, b=5, l=2, r=2),width=1500, height=700)
+        children.append(dcc.Graph(id={"type": "dynamic-perc-graph", "index": 0},figure=perGraph,))
+                   
+        return sah.buildDashTable(performaceStock, dates, marketE), children
     else:
         raise PreventUpdate
 

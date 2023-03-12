@@ -70,7 +70,10 @@ class dataInterfaceHelper(BaseHelper):
             "SELECT * FROM public." + ticker.sqlTickerTableStr, BaseHelper.conn
         )
         return df
+    
+    
 
+        
     def get_historical_data(self, ticker, start_date=None, live=False):
         df = None
         if live:
@@ -102,28 +105,23 @@ class dataInterfaceHelper(BaseHelper):
                 # start_date = None
                 if start_date:
                     df = df[df.index >= start_date]
-                return df
+                return self.__validateHistory(df, ticker)
             except Exception as e:
                 print(ticker.sqlTickerTableStr + " :" + str(e))
                 logging.getLogger().error(ticker.sqlTickerTableStr + " :" + str(e))
         else:
             try:
-                df = pd.read_sql_query(
-                    "SELECT * FROM " + ticker.sqlTickerTableStr, BaseHelper.conn
-                )
+                df = pd.read_sql_query("SELECT * FROM " + ticker.sqlTickerTableStr, BaseHelper.conn)
                 df.drop_duplicates(subset="date", keep='first', inplace=True)
                 for i in df.columns:
                     if i == "date":
                         continue
                     df[i] = df[i].astype(float)
                 df.index = pd.to_datetime(df.date)
-                #df["date"] = pd.to_datetime(df["date"]).date
-                # start_date = None
-                print(df.head())
-                print(df.tail())
                 if start_date:
                     df = df[df.index >= start_date]
-                return df
+                    
+                return df.sort_index() 
             except Exception as e:
                 print(ticker.sqlTickerTableStr + " :" + str(e))
                 logging.getLogger().error(ticker.sqlTickerTableStr + " :" + str(e))
@@ -383,10 +381,17 @@ if __name__ == "__main__":
     # print(date.today())
     marketE=markets_enum['ftse100']
     ticker= tst.getTicker("BP.",marketE)
-    dat = datetime(2023, 2, 20,)
+    dat = datetime(2021, 2, 20,)
     dat=dat-timedelta(days=1)
-    xx=tst.getPreviousDayClose(ticker,marketE,dat)
-    print(xx)
+    #xx=tst.getPreviousDayClose(ticker,marketE,dat)
+    
+    for ticker in tst.get_stocks_list(marketE):  
+        if(ticker.ticker=='CPG'):
+            print('here')
+        df=tst.get_historical_data(ticker,str(dat))
+        print(df)
+    
+
 
     # tst.repeat_clean()
 
