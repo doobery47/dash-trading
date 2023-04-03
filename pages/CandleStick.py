@@ -112,7 +112,7 @@ def procCandlestick(marketVal, candlestickVal, children):
     if children == None:
         children=[]
     if(marketVal != None and candlestickVal != None):
-        tickers = di.get_stocks_list(markets_enum[marketVal])
+        tickers = di.getTickersList(markets_enum[marketVal])
         pattern_function = getattr(talib, candlestickVal)
 
         for tickerName in tickers:

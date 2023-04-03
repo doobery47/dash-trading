@@ -289,7 +289,7 @@ class ValInvDataConversion(BaseHelper):
     # def addValInv2TableData(ticker, data, tablName):
 
     def clearTableData(self, marketE, tableName):
-        tickers = self.get_stocks_list(marketE)
+        tickers = self.getTickersList(marketE)
         for ticker in tickers:
             lTicker = ticker.ticker.lower()
             try:
@@ -302,7 +302,7 @@ class ValInvDataConversion(BaseHelper):
                 logging.getLogger().debug(str(e))
 
     def updateTableWithMarket(self, marketE):
-        tickers = self.get_stocks_list(marketE)
+        tickers = self.getTickersList(marketE)
         for tb in (
             "val_inv_anal_balsheet",
             "val_inv_anal_cashsheet",

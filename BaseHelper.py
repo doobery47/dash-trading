@@ -111,7 +111,7 @@ class BaseHelper:
             logging.getLogger().error(str(e))
 
     def get_stock_list_names(self, stockE):
-        list = self.get_stocks_list(stockE)
+        list = self.getTickersList(stockE)
         names = []
         for namesG in list:
             names.append(namesG.tickerStrpName)
@@ -184,7 +184,7 @@ class BaseHelper:
                              sqlTickerTableStr, sqlTickerTable, tickerStr, tickerYahoo)
 
     # the return list consist of tuples containing a the sqlformat name, the true name
-    def get_stocks_list(self, marketE):
+    def getTickersList(self, marketE):
         df = self.query_columns_to_dataframe(marketE.name, ['epic'])
         tickers = df['epic']
         new_ticker_lst = []

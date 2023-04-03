@@ -34,7 +34,6 @@ class TradingCalculations(BaseHelper):
                 epoch = int((dt - datetime(1970,1,1).date()).total_seconds())/10000
                 dtSeries = dtSeries.replace(to_replace = dt, value = epoch)
             except Exception as e:
-                dtSeries.to_csv("epochTest.csv")
                 print(e)
 
         return dtSeries
@@ -207,11 +206,18 @@ if __name__ == "__main__":
     marketE=markets_enum.ftse100
     dih = dataInterfaceHelper()
     two_yrs_ago = dih.holidayDateAdjust(datetime.now() - relativedelta(years=2), marketE)
-    for ticker in di.get_stocks_list(marketE):  
-        if(ticker.ticker=='WPP'):
-            print('here')
-        df=dih.get_historical_data(ticker,str(two_yrs_ago))  
-        di.calculatePecentageChange(df)
+    #for ticker in di.get_stocks_list(marketE):  
+        # if(ticker.ticker=='AZN'):
+        #     print('here')
+    ticker = dih.getTicker("AZN", marketE)
+    df=dih.get_historical_data(ticker,str(two_yrs_ago))  
+    df=di.calculatePecentageChange(df)
+    
+    fig, ax = plt.subplots()
+    ax.set_title(ticker.ticker)
+    #ax.set_title("Alpha: " + str(round(alpha, 5)) + ", Beta: " + str(round(beta, 3)))
+    ax.plot(df['date'], df['perc-change'])
+    #ax.plot(X, Y_pred, c='r')
 
         
 # %%

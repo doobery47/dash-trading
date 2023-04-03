@@ -110,7 +110,7 @@ def build_market_data(n_intervals: int,marketVal):
         suh=StockUpdateHelper()
         gh=GraphHelper()
         marketValE=markets_enum[marketVal]
-        ticker_list=di.get_stocks_list(marketValE)
+        ticker_list=di.getTickersList(marketValE)
 
         data=[]
         if (ticker_list):

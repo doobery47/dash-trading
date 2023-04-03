@@ -9,6 +9,7 @@ import pandas
 from dash import dash_table
 from DataInterfaceHelper import dataInterfaceHelper
 from ExtFinanceInterface import ExtFinanceInterface
+import tradingExcpetions as tex
 ## To use statsmodels for linear regression
 
 ## To use sklearn for linear regression
@@ -22,7 +23,7 @@ class StockAnalysisHelper(BaseHelper):
     efi=ExtFinanceInterface()
 
     def topShares(self, marketE, years=3):
-        tickers = self.get_stocks_list(marketE)
+        tickers = self.getTickersList(marketE)
         today = datetime.now()
         weekno = datetime.today().weekday()
         today = str(self.holidayDateAdjust(datetime.now() - timedelta(days=1), marketE))
@@ -95,7 +96,7 @@ class StockAnalysisHelper(BaseHelper):
                     df.set_index('id', inplace=True, drop=False)
             else:
                 print("You might need to do a market update for "+ticker.tickerStrpName)
-                #print("DROP TABLE "+ticker.sqlTickerTable+";")
+                raise tex.StockOutofDateException
 
         print(dfNew)
         return dfNew, dates
@@ -185,7 +186,7 @@ class StockAnalysisHelper(BaseHelper):
         
         def buildPercChangeGraph(self, tickers, marketE):
             tickerPercChangeLst=[]
-            for ticker in di.get_stocks_list(marketE):  
+            for ticker in di.getTickersList(marketE):  
                 df=dih.get_historical_data(ticker,str(two_yrs_ago))  
                 tickerPercChangeLst.append(di.calculatePecentageChange(df))
                 

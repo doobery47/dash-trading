@@ -23,7 +23,7 @@ class DatabaseValidation(BaseHelper):
         
     def checkDates(self, marketE):
         weekdaysLst=[]
-        tickers = self.get_stocks_list(marketE)
+        tickers = self.getTickersList(marketE)
         for ticker in tickers:
             df = pd.read_sql_query("SELECT date from "+ticker.sqlTickerTableStr, BaseHelper.conn)
             start=df.loc[df.index[0], 'date']

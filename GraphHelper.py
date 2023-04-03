@@ -16,12 +16,12 @@ class GraphHelper:
     colours = [
             '#0000FF',  # blue
             '#FFBF00',  # dark yellow
-            '#CD5C5C', # IndianRed
+            '#CD5C5C',  # IndianRed
             '#808080',  # Gray
             '#008000',  # Green
             '#6495ED',  # light blue
             '#800080',  # Purple
-            '#FA8072',   # Salmon
+            '#FA8072',  # Salmon
             '#FF0000',  # Red
             '#000000',  # Black
             '#FFFF00',  # yellow
@@ -31,6 +31,20 @@ class GraphHelper:
             '#00FF00',  # secondaryGreen
             '#DE3163',  # dark red
             '#6600FF',  # Secondary Purple
+            '#8ecae6',   #pastel blue"
+            '#219ebc',
+            '#ffb703',
+            '#fb8500',
+            '#2f3e46',
+            '#cdb4db',
+            '#ffc8dd',
+            '#ffafcc',
+            '#bde0fe',
+            '#d4a373',
+            '#ccd5ae',
+            "#d9ed92","#b5e48c","#99d98c","#76c893","#52b69a","#34a0a4","#168aad","#1a759f","#1e6091","#184e77"
+            
+            
         ]
     
     def __movingaverage(self, interval, window_size=10):

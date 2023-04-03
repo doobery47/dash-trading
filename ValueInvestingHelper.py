@@ -45,54 +45,51 @@ class ValueInvestingHelper(BaseHelper):
             tstFile=open("valueTst.txt","a")
             tstFile.write(stock.ticker)
             yahoo_financials = YahooFinancials(stock.tickerYahoo)
-            balance_sheet_data = yahoo_financials.get_financial_stmts("annual", "balance")
-            print(balance_sheet_data)
-            income_statement_data = yahoo_financials.get_financial_stmts("annual", "income")
-            print(income_statement_data)
-            # cash_statement_data = yahoo_financials.get_financial_stmts(
-            #     "annual", "cash")
-            # print(cash_statement_data)
-            self.balanceSheet[stock.ticker] = balance_sheet_data["balanceSheetHistory"][
-                stock.tickerYahoo
-            ]
-            self.incomeStatement[stock.ticker] = income_statement_data[
-                "incomeStatementHistory"
-            ][stock.tickerYahoo]
-            # self.cashStatement[stock.ticker] = cash_statement_data[
-            #     "cashflowStatementHistory"
+            # balance_sheet_data = yahoo_financials.get_financial_stmts("annual", "balance")
+            # print(balance_sheet_data)
+            # income_statement_data = yahoo_financials.get_financial_stmts("annual", "income")
+            # print(income_statement_data)
+            cash_statement_data = yahoo_financials.get_financial_stmts("annual", "cash")
+            print(cash_statement_data)
+            # self.balanceSheet[stock.ticker] = balance_sheet_data["balanceSheetHistory"][
+            #     stock.tickerYahoo
+            # ]
+            # self.incomeStatement[stock.ticker] = income_statement_data[
+            #     "incomeStatementHistory"
             # ][stock.tickerYahoo]
+            self.cashStatement[stock.ticker] = cash_statement_data["cashflowStatementHistory"][stock.tickerYahoo]
         except Exception as e:
             print("error with retrieving stock data :" + e+" stock: "+stock)
 
     def financialInfo(self, marketE):
         print(marketE.name)
         stocks = []
-        stocks = self.get_stocks_list(marketE)
+        stocks = self.getTickersList(marketE)
 
         start = time.time()
-        executor = cf.ThreadPoolExecutor(3)
+        executor = cf.ThreadPoolExecutor(1)
         futures = [executor.submit(self.retrieve_stock_data, stock) for stock in stocks]
         cf.wait(futures)
         end = time.time()
 
-        self.__sheetConversion(self.balanceSheet, "val_inv_anal_balsheet",marketE)
-        self.__sheetConversion(self.incomeStatement, "val_inv_anal_incomesheet",marketE)
-        #self.__sheetConversion(self.cashStatement, "val_inv_anal_cashsheet",marketE)
+        #self.__sheetConversion(self.balanceSheet, "val_inv_anal_balsheet",marketE)
+        #self.__sheetConversion(self.incomeStatement, "val_inv_anal_incomesheet",marketE)
+        self.__sheetConversion(self.cashStatement, "val_inv_anal_cashsheet",marketE)
 
         print("  time taken {:.2f} s".format(end - start))
 
     def __sheetConversion(self, sheetData, sheetTableExt,marketE):
         
         # remove the old records first
-        self.engine.execute("DELETE FROM "+sheetTableExt+" WHERE market='"+marketE.name+"'")
-        BaseHelper.session.commit()
+        # self.engine.execute("DELETE FROM "+sheetTableExt+" WHERE market='"+marketE.name+"'")
+        # BaseHelper.session.commit()
 
 
-        for ticker in sheetData:
-            if sheetData[ticker] == None:
+        for tickerStr in sheetData:
+            if sheetData[tickerStr] == None:
                 continue
 
-            for bs in sheetData[ticker]:
+            for bs in sheetData[tickerStr]:
                 print(bs)
                 theDate = ""
                 for key, value in bs.items():
@@ -101,7 +98,8 @@ class ValueInvestingHelper(BaseHelper):
                 df["date"] = theDate
                 df.rename(columns={list(df)[0]: "date"}, inplace=True)
                 df['market']=marketE.name
-                df["epic"] = ticker.lower()
+                df["epic"] = tickerStr
+                #df.to_csv(sheetTableExt+"-"+tickerStr+".csv")
                 # A lot of column names in yahoo history have changed but we only need the ones below
                 # So we will save these and ignore the rest. 
                 # Improvement. We get all of the data, build the dataframe and remove the columns that are not required.
@@ -113,16 +111,16 @@ class ValueInvestingHelper(BaseHelper):
                 print(df)
                 df.to_csv("valueTst.csv")
 
-                try:
-                    df.to_sql(
-                        sheetTableExt,
-                        con=BaseHelper.engine,
-                        if_exists="append",
-                        index=False,
-                    )
-                    BaseHelper.session.commit()
-                except Exception as e:
-                    logging.getLogger().debug(str(e))
+                # try:
+                #     df.to_sql(
+                #         sheetTableExt,
+                #         con=BaseHelper.engine,
+                #         if_exists="append",
+                #         index=False,
+                #     )
+                #     BaseHelper.session.commit()
+                # except Exception as e:
+                #     logging.getLogger().debug(str(e))
 
     def finalResults(self):
         ROE_req = 10
@@ -149,7 +147,7 @@ class ValueInvestingHelper(BaseHelper):
         return both
     
     def processDataForMarket(self, marketE):
-        tickers = self.get_stocks_list(marketE)
+        tickers = self.getTickersList(marketE)
         return self.processDataForTickers(tickers, marketE)
     
     def processDataForTickers(self, tickers, marketE):   
@@ -158,22 +156,26 @@ class ValueInvestingHelper(BaseHelper):
         for ticker in tickers:
             try:
                 lTicker = ticker.ticker.lower()
-                balSql = "SELECT * FROM public.val_inv_anal_balsheet where market='"+ marketE.name+ "' AND epic='"+ lTicker+ "';"
+                balSql = "SELECT * FROM public.val_inv_anal_balsheet where market='"+ marketE.name+ "' AND epic="+ ticker.sqlMarketTableStr+";"
                 balanceSheets = pandas.read_sql_query(
                     "SELECT * FROM public.val_inv_anal_balsheet where market='"
                     + marketE.name
-                    + "' AND epic='"
-                    + lTicker
-                    + "';",
+                    + "' AND (epic="
+                    + ticker.sqlMarketTableStr
+                    + "or epic="
+                    + ticker.sqlMarketTableStr.lower()
+                    + ");",
                     con=BaseHelper.conn,
                 )
-                balSql = "SELECT * FROM public.val_inv_anal_incomesheet where market='"+ marketE.name+ "' AND epic='"+ lTicker+ "';"
+                balSql = "SELECT * FROM public.val_inv_anal_incomesheet where market='"+ marketE.name+ "' AND epic="+ ticker.sqlMarketTableStr+ ";"
                 incomeSheets = pandas.read_sql_query(
                     "SELECT * FROM public.val_inv_anal_incomesheet where market='"
                     + marketE.name
-                    + "' AND epic='"
-                    + lTicker
-                    + "';",
+                    + "' AND (epic="
+                    + ticker.sqlMarketTableStr
+                    + "or epic="
+                    + ticker.sqlMarketTableStr.lower()
+                    + ");",
                     con=BaseHelper.conn,
                 )
                 
@@ -182,9 +184,11 @@ class ValueInvestingHelper(BaseHelper):
                 
                 #we need to get 2 lists that have the same dates.
                 allDate=balanceSheets["date"].to_list()+incomeSheets["date"].to_list()
+                balanceSheets.to_csv("balanceSheets.csv")
+                incomeSheets.to_csv("incomeSheets.csv")
+                #allDate.to_csv("balanceSheets.csv")
                 dates=[item for item, count in collections.Counter(allDate).items() if count > 1]
 
- 
                 if len(allDate) >=2:
                     count_cond += 1
                     
@@ -202,7 +206,7 @@ class ValueInvestingHelper(BaseHelper):
                         round(netin / equity * 100, 2)
                         for netin, equity in zip(netIncome, equity)
                     ]  # per year
-                    self.roe_dict[lTicker] = (round(sum(roe) / len(roe), 2), roe)
+                    self.roe_dict[ticker.ticker] = (round(sum(roe) / len(roe), 2), roe)
                     eps = [
                         round(earn / stono, 2)
                         for earn, stono in zip(profit, commonStock)
@@ -214,38 +218,22 @@ class ValueInvestingHelper(BaseHelper):
                             if ep == 0:
                                 continue
                             elif ep == 1:
-                                epsg.append(
-                                    round(100 * ((eps[ep - 1] / eps[ep]) - 1), 2)
-                                )
+                                epsg.append(round(100 * ((eps[ep - 1] / eps[ep]) - 1), 2))
                             elif ep == 2:
-                                epsg.append(
-                                    round(
-                                        100 * ((eps[ep - 2] / eps[ep]) ** (1 / 2) - 1),
-                                        2,
-                                    )
-                                )
-                                epsg.append(
-                                    round(100 * ((eps[ep - 1] / eps[ep]) - 1), 2)
-                                )
+                                epsg.append(round(100 * ((eps[ep - 2] / eps[ep]) ** (1 / 2) - 1),2))
+                                epsg.append(round(100 * ((eps[ep - 1] / eps[ep]) - 1), 2))
                             elif ep == 3:
-                                epsg.append(
-                                    round(
-                                        100 * ((eps[ep - 3] / eps[ep]) ** (1 / 3) - 1),
-                                        2,
-                                    )
-                                )
-                                epsg.append(
-                                    round(100 * ((eps[ep - 1] / eps[ep]) - 1), 2)
-                                )
+                                epsg.append(round(100 * ((eps[ep - 3] / eps[ep]) ** (1 / 3) - 1),2))
+                                epsg.append(round(100 * ((eps[ep - 1] / eps[ep]) - 1), 2))
                             else:
                                 print("More than 4 years of FY data")
-                        self.epsg_dict[lTicker] = (
+                        self.epsg_dict[ticker.ticker] = (
                             round(sum(epsg) / len(epsg), 2),
                             epsg,
                         )
                     except:
                         count_eps_0 += 1
-                        self.epsg_dict[lTicker] = (0, eps)
+                        self.epsg_dict[ticker.ticker] = (0, eps)
             except:
                 count_missing += 1
 

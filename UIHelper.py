@@ -9,7 +9,7 @@ class UIHelper(BaseHelper):
         
     def companyNameDropDown(self, marketE, dropdownName):
         options=[]
-        tickers = tickers = self.get_stocks_list(marketE)
+        tickers = tickers = self.getTickersList(marketE)
         for ticker in tickers:
             compName=self.get_company_name(ticker,marketE)
             options.append({'label': compName, 'value': ticker.tickerStrpName})

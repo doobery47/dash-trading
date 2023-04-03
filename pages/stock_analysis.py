@@ -12,7 +12,8 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from DataInterfaceHelper import dataInterfaceHelper
 from Calculations import TradingCalculations
-from ValueInvestingHelper import ValueInvestingHelper
+from ValueInvestingHelper2 import ValueInvestingHelper2
+import tradingExcpetions as tex
 
 
 dash.register_page(
@@ -23,9 +24,22 @@ sah = StockAnalysisHelper()
 
 df = None
 
-
+# stock-update-msg", "is_open"),
+#     Output("val-inv-update-msg"
 layout = html.Div(
     [
+        dbc.Alert(
+            "You might need to do a market update",
+            id="stock-update-msg",
+            is_open=False,
+            duration=4000,
+        ),
+        dbc.Alert(
+            "Value invesmtnets data is either empty or out of date",
+            id="val-inv-update-msg",
+            is_open=False,
+            duration=4000,
+        ),
         html.H1("Stock Analysis", style={"textAlign": "center"}),
         html.Br(),
         dbc.Row(
@@ -184,7 +198,9 @@ layout = html.Div(
 
 @callback(
     Output(component_id="anal-table", component_property="children"),
-    Output(component_id='comp-analysis-perc-graph',component_property="children"),
+    Output(component_id='comp-analysis-perc-graph',component_property="children"),   
+    Output("stock-update-msg", "is_open"),
+    Output("val-inv-update-msg", "is_open"),
     Input(component_id="market-names", component_property="value"),
     Input(component_id="analyis-period", component_property="value"),
     Input(component_id="value-investing", component_property="value"),
@@ -197,18 +213,25 @@ def build_market_data(marketVal, analPeriod, valueInvesting):
     
     if marketVal != None:
         marketE = markets_enum[marketVal]
-        performaceStock, dates = sah.topShares(marketE, analPeriod)
+        try:
+            performaceStock, dates = sah.topShares(marketE, analPeriod)
+        except tex.StockOutofDateException as soe:
+            return None,None,True, False
         if valueInvesting == "apply":
-            vih = ValueInvestingHelper()
+            vih = ValueInvestingHelper2()
             tickerNames = performaceStock["ticker"].tolist()
             tickers = []
             for tickerName in tickerNames:
                 tickers.append(vih.getTicker(tickerName, marketE))
+            try:   
+                vih_tickers, tickers_ds =vih.calculateValueInvestment(marketE)
+            except tex.ValueInvestmentOutofDateException as vie:
+                return None,None,False, True
 
-            vih.processDataForTickers(tickers, marketE)
-            vih_tickers = vih.finalResults()
-            vih_tickersU= list(map(str.upper,vih_tickers))
-            intersect = list(set(performaceStock["ticker"].tolist()).intersection(vih_tickersU)) # the rows that are in both analysis and Value Investing
+            #vih.processDataForTickers(tickers, marketE)
+            #vih_tickers = vih.finalResults()
+            #vih_tickersU= list(map(str.upper,vih_tickers))
+            intersect = list(set(performaceStock["ticker"].tolist()).intersection(vih_tickers)) # the rows that are in both analysis and Value Investing
             performaceStock = performaceStock.loc[performaceStock['ticker'].isin(intersect)]
 
         performaceStock["id"] = performaceStock["ticker"]
@@ -218,8 +241,12 @@ def build_market_data(marketVal, analPeriod, valueInvesting):
         
         #Buid percentage change graph for all tickers
         percChangeDict = {}
-        tickerNames = performaceStock["ticker"].tolist()
-        for tickerName in tickerNames:
+        marketE=markets_enum["nasdaq"] if marketE.name.startswith("nasdaq") else marketE
+        dfMarket = dih.get_marketData(marketE, analPeriod)
+        
+        percChangeDict[marketE.name] = tc.calculatePecentageChange(dfMarket)
+
+        for tickerName in performaceStock["ticker"].tolist():
             ticker = dih.getTicker(tickerName, marketE)
             df = dih.get_historical_data(ticker, str((datetime.now() - relativedelta(years=3)).date()))
             percChangeDict[tickerName] = tc.calculatePecentageChange(df)
@@ -228,7 +255,7 @@ def build_market_data(marketVal, analPeriod, valueInvesting):
         perGraph.update_layout(margin=dict(t=100, b=5, l=2, r=2),width=1500, height=700)
         children.append(dcc.Graph(id={"type": "dynamic-perc-graph", "index": 0},figure=perGraph,))
                    
-        return sah.buildDashTable(performaceStock, dates, marketE), children
+        return sah.buildDashTable(performaceStock, dates, marketE), children, False, False
     else:
         raise PreventUpdate
 
@@ -267,3 +294,4 @@ def buildGraph(actCell, graphType,data, marketStr):
     children.append(dcc.Graph(id={"type": "dynamic-graph", "index": 0},figure=gr,))
     news = dih.getRssNews(ticker.tickerYahoo, "16px")
     return children, news
+

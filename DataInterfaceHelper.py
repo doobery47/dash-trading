@@ -14,6 +14,7 @@ import sqlalchemy
 import numpy as np
 import feedparser
 from dash import Dash, html, dcc, Output, Input, callback, State, MATCH
+import tradingExcpetions as tex
 
 
 class dataInterfaceHelper(BaseHelper):
@@ -35,6 +36,7 @@ class dataInterfaceHelper(BaseHelper):
         BaseHelper.__init__(self)
 
     def get_marketData(self, marketE, period=1, sec=sector_enum.none):
+            
         tableName = marketE.name + "_historic_values"
         startDate=self.holidayDateAdjust(datetime.now() - relativedelta(years=period), marketE)
         #startDate = (datetime.now() + timedelta(days=((period*365)-1)*-1)).date()
@@ -275,14 +277,11 @@ class dataInterfaceHelper(BaseHelper):
         datStr="'"+str(lastKnownDate)+"'"
         df = pd.read_sql_query('SELECT close FROM ' + ticker.sqlTickerTable+' where "date"='+datStr+';', BaseHelper.conn)
         if(df.empty):
-            prevClose=0
+            raise tex.StockOutofDateException
         else:
             prevClose=df['close'][0]
         return prevClose
-        
-        
-        
-                    
+                           
     def getMarketTicker(self, marketE):
         if marketE == markets_enum.ftse100:
             marketStr = "^FTSE"
@@ -329,7 +328,7 @@ class dataInterfaceHelper(BaseHelper):
         f.close()
 
     def removeLastRecFromTable(self, marketE):
-        tickers = self.get_stocks_list(marketE)
+        tickers = self.getTickersList(marketE)
         for ticker in tickers:
             lTicker = ticker.sqlTickerTableStr.lower()
             try:
@@ -385,7 +384,7 @@ if __name__ == "__main__":
     dat=dat-timedelta(days=1)
     #xx=tst.getPreviousDayClose(ticker,marketE,dat)
     
-    for ticker in tst.get_stocks_list(marketE):  
+    for ticker in tst.getTickersList(marketE):  
         if(ticker.ticker=='CPG'):
             print('here')
         df=tst.get_historical_data(ticker,str(dat))

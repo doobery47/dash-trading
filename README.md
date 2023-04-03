@@ -13,6 +13,8 @@ market data: https://www.marketwatch.com/investing/index/mcx/download-data?count
 
 downloaddatapartial?startDate=08/03/2022 00:00:00&endDate=09/02/2022 23:59:59&dateRange=D30&frequency=P1D&CsvDownload=true&DownloadPartial=false&NewDates=false"
 
+alpha vanatge key = 8YK5R4YCP3GA0J6C
+
 TODO
 
 3. get info and positions on invidual sectors.
@@ -51,8 +53,18 @@ Stratagy
 Stock analysis additionns
 1. Activate the date option so that it analyses over 2 or 3 years. But the plot shuld lways show 3 years. Interesting to see what
     the stock did on the 3rd year.
-2. Add cadelstick option
-3. Add a plot with all the selected stocks but plot percentage change.
+2. ~~~Add cadelstick option~~~
+3. ~~~Add a plot with all the selected stocks but plot percentage change.~~~
+4. Want to be to add an option to determine the risk and/or specifiy the risk and therefore remove the stock that dont comply
+
+
+TODO
+
+Value investing doesnt seem to work propperly. We need to find a way of backtesting this (Find a stratagy).
+    - If we cant a find a solution then use the other mechanism. The downside of this is the values only span on quarter.
+
+
+
 
 
 What has an impact on the share price?

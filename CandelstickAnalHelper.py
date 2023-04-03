@@ -50,7 +50,7 @@ class CandlestickAnalHelper(BaseHelper):
         breakout_list = []
         sql = """INSERT INTO ticket_errors(epic, name, reason, timestamp) VALUES(%s,%s,%s,%s);"""
 
-        tickers=self.get_stocks_list(marketsE)
+        tickers=self.getTickersList(marketsE)
         print("Started processing")
         for tickerNames in tickers:
             pattern="CDLBREAKAWAY"

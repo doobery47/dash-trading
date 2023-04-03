@@ -1,20 +1,16 @@
-import psycopg2
 import pandas as pd
-import pandas
 from BaseHelper import BaseHelper
 import pandas as pd
-from datetime import date
 from marketsenum import markets_enum
-from sectorenum import sector_enum
 from DataInterfaceHelper import dataInterfaceHelper
-from datetime import date, datetime,timedelta
+from datetime import datetime,timedelta
 import logging
 
 class StockUpdateHelper(BaseHelper):
     def __init__(self):
         BaseHelper.__init__(self)
         
-    def refineTableData(df):
+    def refineTableData(self, df):
         if(df.size == 0): # We have an empty table
             startDate = datetime.now() + timedelta(days=-364)
         elif(df.size > 0):
@@ -28,7 +24,7 @@ class StockUpdateHelper(BaseHelper):
         rlist=[]
         for me in markets_enum:  
             if(me==markets_enum.s_and_p or me==markets_enum.nasdaq): continue # Ignore S and P for now
-            li=self.get_stocks_list(me)
+            li=self.getTickersList(me)
             try:
                 mdata=di.get_ticker_data(li[0])
                 mDate=mdata.iloc[-1]['date']
@@ -44,7 +40,7 @@ class StockUpdateHelper(BaseHelper):
         # go through each one and get the last time it was updated.
         # flag any that not been updated.
         di = dataInterfaceHelper()
-        tickers = self.get_stocks_list(marketE)
+        tickers = self.getTickersList(marketE)
         rlist=[]
         for ticker in tickers:  
             try:
